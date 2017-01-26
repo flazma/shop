@@ -508,7 +508,8 @@ public class ShopHttpClient{
 	}
 	
 	/**
-	 * schedule�� �� ���� �Ľ�
+	 * schedule정보 조회
+	 * 
 	 * @param songJson
 	 * @return
 	 * @throws Exception

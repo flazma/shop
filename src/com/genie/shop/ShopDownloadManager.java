@@ -58,7 +58,7 @@ public class ShopDownloadManager {
 	}
 	
 	/**
-	 * queue�� file�� �����´�. ������ �Ŀ��� �����
+	 * queue to peek file(remove)
 	 * @return
 	 */
 	public synchronized MediaInfoVO getAudioFile(){
@@ -83,8 +83,8 @@ public class ShopDownloadManager {
 	}
 	
 	/**
-	 * Ư�� ��ο� mp3������ ����
-	 * ��δ� ../../cache/xxx.mp3
+	 * mp3 file to local disk write
+	 * location = ./cache/xxx.mp3
 	 * @param contents
 	 * @param fileName
 	 * @throws Exception
@@ -126,6 +126,13 @@ public class ShopDownloadManager {
 		MediaInfoVO mediaInfo = queue.poll();
 		logger.info("media info is seq=" + mediaInfo.getSeq() +",songUid=" + mediaInfo.getSongUid() + ",filePath="+mediaInfo.getFilePath());		
 		logger.info("after poll size =" + queue.size());
+		
+		Iterator itr = queue.iterator();
+		while(itr.hasNext()){
+			MediaInfoVO tmp = (MediaInfoVO)itr.next();
+			logger.info("remain queue info seq("+tmp.getSeq()+"),songUid("+tmp.getSongUid()+"),filePath("+tmp.filePath+")");
+		}
+		
 		return mediaInfo;
 		
 	}
@@ -162,7 +169,8 @@ public class ShopDownloadManager {
 	}
 	
 	@Async
-	public ArrayList<MediaInfoVO> addQueueMedia(UserVO user, ChannelVO channelInfo, Long seq) throws Exception {
+	public void addQueueMedia(UserVO user, ChannelVO channelInfo, Long seq) throws Exception {
+		//public ArrayList<MediaInfoVO> addQueueMedia(UserVO user, ChannelVO channelInfo, Long seq) throws Exception {
 		
 		ArrayList<MediaInfoVO> arrMedia = new ArrayList<MediaInfoVO>();
 		
@@ -178,9 +186,13 @@ public class ShopDownloadManager {
 		
 		logger.info("\tdownload gap is MAX_SIZE("+MAX_SIZE+")-queue.size("+queue.size()+") = "+gap);
 		
-		Iterator itr = queue.iterator();
+		//queue에서 마지막 seq를 참고하여 seq 에서 gap까지를 다운받아야 함
+		//만약 마지막 큐의 값이 0이 아니면 마지막 seq의 값을 참고하여 다운로드 리스트 작성
+		if ( getQueueLastSeq() != 0L){
+			seq = getQueueLastSeq()+1;
+		}
 		
-		//queue 다운로드 문자열 생성		
+		//queue 다운로드 문자열 생성
 		for ( Long i=seq, j = i+gap; i<j; i++){
 			songList += i + ",";
 		}
@@ -212,9 +224,7 @@ public class ShopDownloadManager {
 					mediaInfo.setSongUid((Long)songObject.get("songUid"));
 					mediaInfo.setCdnPath(StringUtils.trimToEmpty((String)songObject.get("filePath")));
 					
-					logger.info("\tdownload info=mediaInfo.getSeq()"+ mediaInfo.getSeq());
-					logger.info("\tdownload info=mediaInfo.getSongUid()"+ mediaInfo.getSongUid());
-					logger.info("\tdownload info=mediaInfo.getFilePath()"+ mediaInfo.getFilePath());
+					logger.info("\tdownload info=mediaInfo.getSeq()"+ mediaInfo.getSeq() +",getSongUid()"+ mediaInfo.getSongUid()+",getFilePath()"+ mediaInfo.getFilePath());
 										
 					File file = new File("./cache/"+ mediaInfo.getSongUid() +".mp3");
 					InputStream instream = shopHttpClient.getMedia(mediaInfo.getCdnPath());
@@ -222,7 +232,7 @@ public class ShopDownloadManager {
 					
 					mediaInfo.setFilePath(file.getPath());
 					
-					logger.info("\tdownload mp3 disk write="+ file.getPath());
+					logger.info("\t mp3 disk write="+ file.getPath());
 		
 			        try {
 			            int l;
@@ -245,11 +255,28 @@ public class ShopDownloadManager {
 			}
 			
 		
-		
-		
-		return arrMedia;
+		//return arrMedia;
 	}
 
+	/**
+	 * queue last seq
+	 * @return
+	 */
+	public Long getQueueLastSeq(){
+		MediaInfoVO media = null;
+		Long seq = 0L;
+		Iterator itr = queue.iterator();
+		while(itr.hasNext()){
+			media = (MediaInfoVO)itr.next();
+		}
+		
+		if ( media != null){
+			seq = media.getSeq();
+		}
+		
+		return seq;
+	}
+	
 	public static Logger getLogger() {
 		return logger;
 	}

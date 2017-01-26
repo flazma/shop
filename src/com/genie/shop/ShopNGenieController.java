@@ -204,6 +204,7 @@ public class ShopNGenieController {
 		appInfo = shopHttpClient.parseAppInfo(userInfoLogin);
 		Long seq = -1L;
 		
+		boolean isFirst = true;
 		
 		while(true){
 			ArrayList<ChannelVO> arrChannelList = shopHttpClient.parseChannelList(userInfoLogin,lastChannelInfo);
@@ -214,37 +215,24 @@ public class ShopNGenieController {
 				//		
 				ArrayList<SongVO> songInfoList = shopHttpClient.parseSongInfo(userInfoLogin, songChannel,seq);
 				
-				SongVO songInfo = songInfoList.get(0);
+				SongVO songInfo = null;
 				
-				shopDownloadManager.addQueueMedia(userInfoLogin, songChannel,songInfo.getSeq());
-				
-				//shopDownloadManager.start();
-				
-				playMusic(songInfo);
-				seq = songInfo.getSeq();
-				
-				//
-				//downMng.writeFile(contents, path, fileName);
-				
-				//ArrayList<MediaInfoVO> mediaList = shopHttpClient.getDownloadMedia(userInfoLogin, songChannel,  seq);
+				//증복 로그인 시 size = 0  리턴
+				if ( songInfoList.size() != 0 ){
+					songInfo = songInfoList.get(0);
+					
+					shopDownloadManager.addQueueMedia(userInfoLogin, songChannel,songInfo.getSeq());
+					
+					playMusic(songInfo);
+					seq = songInfo.getSeq();
+				}else{
+					Thread.sleep(10 * 1000);
+				}
 				
 				Thread.sleep(1000);
 				
-				
-				
 			}
 		}
-		
-		
-		
-		//2. �α��� ����, �α��� ���� ��ȸ
-		
-		
-		//3. �α��� �� ��ǰ ���� üũ
-		
-		
-		//4. ���� ä�� ���� �� ��ȸ 
-		
 		
 	}
 	
@@ -288,15 +276,20 @@ public class ShopNGenieController {
 		logger.info("download queue size=" + shopDownloadManager.queue.size());
 			//queue 사이즈가 0보다 크면...
 			if ( shopDownloadManager.queue.size() > 0 ){
+				
 				media = shopDownloadManager.poll();
+				logger.info("is queue poll seq(" + media.getSeq()+")");
 				InputStream stream = new FileInputStream(media.getFile());
+				
 				player = new Player(stream);
 			}else{
 				response = client.execute(httpget);		
 				int statusCode = response.getStatusLine().getStatusCode();			
 				
 				HttpEntity httpEntity = response.getEntity();			
-		          
+		        
+				
+				logger.info("is http progressive streaming!!");
 				player = new Player(httpEntity.getContent());
 			}
 				
@@ -304,6 +297,8 @@ public class ShopNGenieController {
 			//player.open(httpEntity.getContent());
 			//logger.info("\nplayer position:"+ String.format("%,d", Integer.parseInt(""+startByte)) + " bytes");
 			//player.seek(startByte);
+			
+			logger.info("is playing!!");
 			
 			player.play();
 			
@@ -339,33 +334,6 @@ public class ShopNGenieController {
 	 */
 	public void networkFailPlay(){}
 
-
-
-
-	/*public static Logger getLogger() {
-		return logger;
-	}
-
-
-
-
-	public static void setLogger(Logger logger) {
-		ShopNGenieController.logger = logger;
-	}*/
-
-
-
-/*
-	public static Properties getProp() {
-		return prop;
-	}
-
-
-
-
-	public static void setProp(Properties prop) {
-		ShopNGenieController.prop = prop;
-	}*/
 
 	public ShopHttpClient getShc() {
 		return shopHttpClient;
