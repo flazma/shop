@@ -9,14 +9,14 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 
 import com.genie.shop.vo.ChannelVO;
@@ -31,7 +31,7 @@ import com.genie.shop.vo.UserVO;
  */
 @Component
 public class ShopDownloadManager {
-	static Logger logger = Logger.getLogger(ShopDownloadManager.class);
+	static Logger logger = LoggerFactory.getLogger(ShopDownloadManager.class);
 	
 	@Value("#{config['download.url']}")
 	public String downloadUrl = "";

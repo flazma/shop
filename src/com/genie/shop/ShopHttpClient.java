@@ -23,10 +23,11 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +47,7 @@ public class ShopHttpClient{
 	
 	
 	private String xauth = "";
-	static Logger logger = Logger.getLogger(ShopHttpClient.class);
+	static Logger logger = LoggerFactory.getLogger(ShopHttpClient.class);
 	
 	HttpClient client = new DefaultHttpClient();
 	
@@ -695,7 +696,7 @@ public class ShopHttpClient{
 			
 			player.seek(startByte);
        } catch (Exception e) {
-           logger.warn(e);
+           logger.warn(e.toString());
        }
 	          
 	}
@@ -810,7 +811,7 @@ public class ShopHttpClient{
 			player = new Player(httpEntity.getContent());
 			player.play();
 		}catch(Exception e){
-			logger.warn(e);
+			logger.warn(e.toString());
 		}
 	}
 	
@@ -834,7 +835,7 @@ public class ShopHttpClient{
 			inp =  httpEntity.getContent();
 			
 		}catch(Exception e){
-			logger.warn(e);
+			logger.warn(e.toString());
 		}
 		
 		return inp;

@@ -14,7 +14,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -25,13 +26,14 @@ import com.genie.shop.vo.MediaInfoVO;
 import com.genie.shop.vo.SongVO;
 import com.genie.shop.vo.UserVO;
 
+import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
 
 
 @Controller
 public class ShopNGenieController {
 	
-	static Logger logger = Logger.getLogger(ShopNGenieController.class);
+	static Logger logger = LoggerFactory.getLogger(ShopNGenieController.class);
 	
 	@Autowired
 	private ShopHttpClient shopHttpClient;
@@ -47,7 +49,7 @@ public class ShopNGenieController {
 	UserVO userInfoLogin = null;
 	UserVO userAccountInfo = null;
 	
-	//������ ä�� �缺 ���� ��ȸ
+	//
 	ChannelVO lastChannelInfo = null;
 
 	AppInfoVO appInfo = null;
@@ -101,7 +103,7 @@ public class ShopNGenieController {
 	public Integer maxDownloadCount = 0;
 	
 	/**
-	 * �÷��̾�
+	 * 
 	 */
 	public Player player = null;
 	
@@ -132,13 +134,13 @@ public class ShopNGenieController {
 	
 	/**
 	 * 
-	 * 1.network check
-	 * 	- ��ȭ�� üũ
-	 *  - ��Ʈ��ũ �ӵ� üũ
+	 * 1.network check ( establish network )
+	 * 	- api domain check 
+	 *  - cdn domain check
 	 * 2. disk check
-	 *  - cache disk delete
-	 * 3. ��Ʈ��ũ üũ �� TTS�� ���� ��Ȳ ��� �ʿ�
-	 *  - ���� ��� ����� SMS Ȥ�� LMS, TTS�� ��� ����
+	 *  - first cache clean (disk delete)
+	 * 3. notice service ( may be )
+	 *  - SMS, LMS, TTS 
 	 */
 	public void checkConfiguration(){
 		
@@ -158,7 +160,7 @@ public class ShopNGenieController {
 			}
 			
 		}catch(Exception e){
-			logger.warn(e);
+			logger.warn(e.toString());
 		}
 		
 	}
@@ -306,8 +308,12 @@ public class ShopNGenieController {
 				media.file.delete();
 			}
 			
-       } catch (Exception e) {
-           logger.error(e);
+       }catch (JavaLayerException je) {
+    	   //Cannot create AudioDevice 
+    	   logger.warn(je.toString());
+       }
+		catch (Exception e) {
+			logger.warn(e.toString());
        }
 	          
 	}
