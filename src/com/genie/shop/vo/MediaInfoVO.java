@@ -3,7 +3,7 @@ package com.genie.shop.vo;
 import java.io.File;
 import java.io.Serializable;
 
-public class MediaInfoVO implements Serializable{
+public class MediaInfoVO extends SongVO {
 	public File file = null;
 	
 	public Long seq = -1L;

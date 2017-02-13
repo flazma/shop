@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Controller;
 
 import com.genie.shop.vo.AppInfoVO;
@@ -29,7 +31,7 @@ import com.genie.shop.vo.UserVO;
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
 
-
+@EnableAsync
 @Controller
 public class ShopNGenieController {
 	
@@ -188,6 +190,10 @@ public class ShopNGenieController {
 	
 	public void run() throws Exception {
 		
+		
+		//구동 시간 정리
+		String startingYmd   = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
+		
 		//1. app 
 		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
 		formparams.add(new BasicNameValuePair("shopId", shopId));
@@ -198,6 +204,7 @@ public class ShopNGenieController {
 		
 		//계정정보
 		userAccountInfo = shopHttpClient.parseAccountInfo(shopId,userInfoLogin.getSessionKey());
+		userAccountInfo.setSessionKey(userInfoLogin.getSessionKey());
 		
 		//채널정보
 		ChannelVO lastChannelInfo = shopHttpClient.parseChannelInfo(shopId);
@@ -208,35 +215,98 @@ public class ShopNGenieController {
 		
 		boolean isFirst = true;
 		
+		SongVO songInfo = null;
+		ArrayList<SongVO> daySongInfoList = null;
+		ChannelVO songChannel = null;
+		
+		//네트워크 offline 및 장애처리 로직 없음		
+		ArrayList<ChannelVO> arrChannelList = shopHttpClient.parseChannelList(userAccountInfo,lastChannelInfo);
+		ArrayList<SongVO> songInfoList = null;
+		
+		if(arrChannelList != null && arrChannelList.size() > 0){
+		
+			songChannel = arrChannelList.get(0);				
+			//		
+			songInfoList = shopHttpClient.parseSongInfo(userAccountInfo, songChannel,seq);
+		}
+		
+		
 		while(true){
-			ArrayList<ChannelVO> arrChannelList = shopHttpClient.parseChannelList(userInfoLogin,lastChannelInfo);
-				
-			if(arrChannelList != null && arrChannelList.size() > 0){
 			
-				ChannelVO songChannel = arrChannelList.get(0);				
-				//		
-				ArrayList<SongVO> songInfoList = shopHttpClient.parseSongInfo(userInfoLogin, songChannel,seq);
+			String runningYmd   = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
+			//구동일자와 동일한 날짜이면 스케쥴 정보를 조회하지 않는다.
+			//만약 구동일자와 다른 날짜이면 스케쥴 정보를 조회 한다.			
+			if (startingYmd.equals(runningYmd) ){//구동일자가 같으면
 				
-				SongVO songInfo = null;
+				if(arrChannelList != null && arrChannelList.size() > 0){
 				
-				//증복 로그인 시 size = 0  리턴
-				if ( songInfoList.size() != 0 ){
-					songInfo = songInfoList.get(0);
+					songChannel = arrChannelList.get(0);
+					songInfoList = shopHttpClient.parseSongInfo(userAccountInfo, songChannel,seq);				
 					
-					shopDownloadManager.addQueueMedia(userInfoLogin, songChannel,songInfo.getSeq());
-					
-					playMusic(songInfo);
-					seq = songInfo.getSeq();
-				}else{
-					Thread.sleep(10 * 1000);
+					if ( daySongInfoList == null){
+						//하루의 스케쥴 전체 조회
+						daySongInfoList = shopHttpClient.parseDaySchedules(songChannel.getChannelUid(), songChannel.getScheduleUid(), songChannel.getChainUid(), userAccountInfo.getSessionKey());
+						int j = daySongInfoList.size();
+						String inTime   = new java.text.SimpleDateFormat("HHmmss").format(new java.util.Date());
+						
+						for (int i=0; i <j ; ){
+							SongVO songTmp = (SongVO)daySongInfoList.get(i);				
+							Long startTime = Long.parseLong(songTmp.getStartTime());
+							Long endTime = Long.parseLong(songTmp.getEndTime());
+							
+							Long currentTime = Long.parseLong(inTime);
+							
+							if ( currentTime > endTime ){							
+								daySongInfoList.remove(songTmp);
+								j--;							
+							}else{
+								i++;
+							}
+						}					
+					}
+				}	
+	
+			}else{
+				startingYmd = runningYmd;
+				
+				arrChannelList = shopHttpClient.parseChannelList(userAccountInfo,lastChannelInfo);
+				if(arrChannelList != null && arrChannelList.size() > 0){
+				
+					songChannel = arrChannelList.get(0);				
+					//		
+					songInfoList = shopHttpClient.parseSongInfo(userAccountInfo, songChannel,seq);
 				}
+			}
+			
+			//증복 로그인 시 size = 0  리턴
+			if ( songInfoList.size() != 0 ){
+				songInfo = songInfoList.get(0);
 				
-				Thread.sleep(1000);
+				shopDownloadManager.addMedia(userAccountInfo, songChannel,songInfo.getSeq(), daySongInfoList );
+				
+				//shopDownloadManager.addQueueMedia(userAccountInfo, songChannel,songInfo.getSeq());
+				
+				//shopDownloadManager.asynchDown(userAccountInfo, songChannel,songInfo.getSeq());
+				
+				
+				//shopHttpClient.playTTS(player,songInfo.getArtistName(),songInfo.getSongTitle());
+				
+				playMusic(songInfo);
+				
+				shopHttpClient.sendPlayLog(userAccountInfo,songInfo, formparams);
+				
+				//shopHttpClient.sendPlayLog(userInfoLogin,songInfo);
+				
+				seq = songInfo.getSeq();
+			}else{
+				Thread.sleep(10 * 1000);
+			}
+			
+			Thread.sleep(1000);
 				
 			}
 		}
 		
-	}
 	
 	/**
 	 * song play
@@ -310,10 +380,13 @@ public class ShopNGenieController {
 			
        }catch (JavaLayerException je) {
     	   //Cannot create AudioDevice 
-    	   logger.warn(je.toString());
+    	   //logger.warn(je.toString());
+    	   logger.info(je.toString(), je);
+    	   //logger.warn(je);
        }
 		catch (Exception e) {
-			logger.warn(e.toString());
+			logger.info(e.toString(), e);
+			//logger.warn(e.toString());
        }
 	          
 	}

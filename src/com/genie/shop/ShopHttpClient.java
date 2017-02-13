@@ -22,6 +22,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -87,6 +88,13 @@ public class ShopHttpClient{
 
 	@Value("#{config['download.url']}")
 	public String downloadUrl = "";
+	
+	@Value("#{config['play.log.url']}")
+	public String playLogUrl = "";
+	
+	
+	@Value("#{config['day.schedules.url']}")
+	public String daySchedulesUrl = "";
 	
 	
 	public String getBasicId() {
@@ -181,7 +189,7 @@ public class ShopHttpClient{
 	
 	
 	/**
-	 * API ��� ����, X auth �� basic auth
+	 * API 헤더 추가, X auth 및 basic auth
 	 * @param url
 	 * @return
 	 * @throws Exception
@@ -191,7 +199,7 @@ public class ShopHttpClient{
 	}
 	
 	/**
-	 *  API ��� ����, X auth �� basic auth
+	 *  API 헤더 추가, X auth 및 basic auth
 	 * @param url
 	 * @param xauth
 	 * @return
@@ -219,20 +227,30 @@ public class ShopHttpClient{
 		
 	}
 	
+	
+	public String setPostApiHeader(String url,List<NameValuePair> formparams) throws Exception{
+		return setPostApiHeader(url,formparams,null);
+	}
+	
 	/**
-	 * POST�� API ȣ��
+	 * POST용 API 
 	 * @param url
 	 * @param formparams
 	 * @return
 	 * @throws Exception
 	 */
-	public String setPostApiHeader(String url,List<NameValuePair> formparams) throws Exception{		
+	public String setPostApiHeader(String url,List<NameValuePair> formparams, String xauth) throws Exception{		
 		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, "UTF-8");
 		HttpPost httppost = new HttpPost(apiUrl + url);
-		httppost.removeHeaders("Authorization");
+		httppost.removeHeaders("Authorization");		
+		httppost.removeHeaders("X-AuthorityKey");
 		httppost.setEntity(entity);		
 		httppost.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
-				
+		
+		if ( xauth != null){
+			httppost.setHeader("X-AuthorityKey", xauth);
+		}
+		
 		HttpResponse response = client.execute(httppost);
 		int statusCode = response.getStatusLine().getStatusCode();
 		
@@ -241,8 +259,37 @@ public class ShopHttpClient{
 		return EntityUtils.toString(httpEntity);
 	}
 	
+	
 	/**
-	 * user���� parse
+	 * 재생로그 전송 api
+	 * @param url
+	 * @param formparams
+	 * @param songInfo
+	 * @throws Exception
+	 */
+	public void sendPlayLog(UserVO userInfo,SongVO songInfo, List<NameValuePair> formparams) throws Exception {
+
+		logger.info("is play log songUid=" + songInfo.getSongUid() + ",title=" + songInfo.getSongTitle());
+		
+		formparams.add(new BasicNameValuePair("siteCode", songInfo.getSiteCode()));
+		formparams.add(new BasicNameValuePair("sidCode", songInfo.getSidCode()));
+		formparams.add(new BasicNameValuePair("chainUid", "" + songInfo.getChainUid()));
+		formparams.add(new BasicNameValuePair("shopUid", "" + userInfo.getShopUid() ));
+		formparams.add(new BasicNameValuePair("channelUid", "" + songInfo.getChannelUid() ));
+		formparams.add(new BasicNameValuePair("albumUid", "" + songInfo.getAlbumUid() ));
+		formparams.add(new BasicNameValuePair("scheduleUid", "" + songInfo.getScheduleUid() ));
+		formparams.add(new BasicNameValuePair("songUid", "" + songInfo.getSongUid() ));
+		formparams.add(new BasicNameValuePair("songLid", "" + songInfo.getSongLid() ));
+		formparams.add(new BasicNameValuePair("cmYn", "" + (songInfo.getSongType().equals("CM") ? "Y" : "N" ) ));
+		
+		String songJson = setPostApiHeader(playLogUrl,formparams,userInfo.getSessionKey());
+		
+		logger.info("is play log result =" + songJson);
+		
+	}
+	
+	/**
+	 * userInfo parse
 	 * @param loginJson
 	 * @return
 	 * @throws Exception
@@ -330,8 +377,7 @@ public class ShopHttpClient{
 	}
 	
 	/**
-	 * ä�� ���� parse
-	 * ������ ä������ ��ȸ
+	 * 채널 정보 parse 
 	 * @param channelJson
 	 * @return
 	 * @throws Exception
@@ -370,7 +416,7 @@ public class ShopHttpClient{
 	
 	
 	/**
-	 * ä�� ���� ���� ���� api 
+	 * 채널 리스트 파싱 api 
 	 * @param reSchduleUrl
 	 * @return
 	 * @throws Exception
@@ -425,7 +471,83 @@ public class ShopHttpClient{
 	}
 	
 	/**
-	 * ���� ���� �Ľ�
+	 * 일별 스케쥴정보 조회
+	 * @param shopId
+	 * @param sessionKey
+	 * @return
+	 * @throws Exception
+	 */
+	public ArrayList<SongVO> parseDaySchedules(Long channelUid, Long schedulesUid, Long chainUid, String sessionKey) throws Exception{
+		
+		//#channelUid#/schedules/#schedulesUid#?chainUid=#chainUid#
+		String tmpDaySchedulesUrl = StringUtils.replace(daySchedulesUrl, "#channelUid#", "" + channelUid);		
+		tmpDaySchedulesUrl = StringUtils.replace(tmpDaySchedulesUrl, "#schedulesUid#", "" + schedulesUid);
+		tmpDaySchedulesUrl = StringUtils.replace(tmpDaySchedulesUrl, "#chainUid#", "" + chainUid);
+		
+		String songJson = setApiHeader(tmpDaySchedulesUrl,sessionKey);
+		
+		ArrayList<SongVO> arrSongVO = new ArrayList();
+		
+		JSONParser par = new JSONParser();
+		
+		JSONObject json = (JSONObject)par.parse(songJson);
+		JSONObject jsonData = (JSONObject)json.get("data");		
+		String  rtCode = (String)jsonData.get("rtCode");
+		
+		
+		if ( "0".equals(rtCode)){
+		
+			JSONArray jsonResult = (JSONArray)((JSONObject)jsonData.get("params")).get("songList");
+				
+			for(int i=0,j=jsonResult.size(); i < j ; i++){
+				JSONObject songObject = (JSONObject)jsonResult.get(i);
+				SongVO songInfo = new SongVO();
+						
+				songInfo.setPlayListUid((Long)songObject.get("play_list_uid"));
+				songInfo.setChainUid((Long)songObject.get("chain_uid"));
+				songInfo.setAlbumUid((Long)songObject.get("album_uid"));
+				songInfo.setScheduleUid((Long)songObject.get("schedule_uid"));
+				songInfo.setScheduleType(StringUtils.trimToEmpty((String)songObject.get("schedule_type")));
+				songInfo.setVersion(StringUtils.trimToEmpty((String)songObject.get("version")));
+				songInfo.setSeq((Long)songObject.get("seq"));
+				songInfo.setStartTime(StringUtils.trimToEmpty((String)songObject.get("start_time")));
+				songInfo.setEndTime(StringUtils.trimToEmpty((String)songObject.get("end_time")));
+				songInfo.setStartRunTime((Long)songObject.get("start_run_time"));
+				songInfo.setEndRunTime((Long)songObject.get("end_run_time"));
+				songInfo.setIsActive(StringUtils.trimToEmpty((String)songObject.get("is_active")));
+				//payAlert 추가 되어야 함
+				songInfo.setAppointUnit(StringUtils.trimToEmpty((String)songObject.get("appoint_unit")));
+				songInfo.setPriority((Long)songObject.get("priority"));
+				songInfo.setFilePathNortest(StringUtils.trimToEmpty((String)songObject.get("file_path_nortest")));
+				songInfo.setSongUid((Long)songObject.get("song_uid"));
+				songInfo.setSongLid((Long)songObject.get("song_lid"));
+				songInfo.setSongTitle(StringUtils.trimToEmpty((String)songObject.get("song_title")));
+				songInfo.setArtistName(StringUtils.trimToEmpty((String)songObject.get("artist_name")));
+				songInfo.setUnder19Yn(StringUtils.trimToEmpty((String)songObject.get("under19_yn")));
+				songInfo.setCoverImg(StringUtils.trimToEmpty((String)songObject.get("cover_img")));
+				songInfo.setCoverImgMid(StringUtils.trimToEmpty((String)songObject.get("cover_img_mid")));
+				songInfo.setCoverImgBig(StringUtils.trimToEmpty((String)songObject.get("cover_img_big")));
+				songInfo.setFilePath(StringUtils.trimToEmpty((String)songObject.get("file_path")));
+				songInfo.setStreamUrl(StringUtils.trimToEmpty((String)songObject.get("stream_url")));
+				songInfo.setRuntime((Long)songObject.get("runtime"));
+				songInfo.setSongType(StringUtils.trimToEmpty((String)songObject.get("song_type")));
+				songInfo.setCutYn(StringUtils.trimToEmpty((String)songObject.get("cut_yn")));
+				songInfo.setCutTime((Long)songObject.get("cutTime"));
+				songInfo.setCurrentTime((Long)songObject.get("current_time"));
+				songInfo.setPlayStartRunTime((Long)songObject.get("play_start_run_time"));
+				songInfo.setSiteCode(StringUtils.trimToEmpty((String)songObject.get("siteCode")));
+				songInfo.setSidCode(StringUtils.trimToEmpty((String)songObject.get("sidCode")));
+				songInfo.setCexpDates(StringUtils.trimToEmpty((String)songObject.get("cexpdates")));
+				
+				arrSongVO.add(songInfo);
+			}
+		}
+		return arrSongVO;
+	}
+	
+	
+	/**
+	 * 계정정보 파싱
 	 * @param shopId
 	 * @param sessionKey
 	 * @return
@@ -792,7 +914,7 @@ public class ShopHttpClient{
 	
 	
 	/**
-	 * TTS �׽�Ʈ�� , ��Ƽ��Ʈ�� �� ������ ���
+	 * TTS 재생
 	 * @param player
 	 * @param artistName
 	 * @param songTitle
@@ -804,7 +926,7 @@ public class ShopHttpClient{
 		
 		try{
 			
-			httpttsGet = new HttpGet(ttsStr + URLEncoder.encode(artistName+" �� ","UTF-8") + URLEncoder.encode(songTitle+" �� ��۵˴ϴ�","UTF-8"));
+			httpttsGet = new HttpGet(ttsStr + URLEncoder.encode(artistName+" 의 ","UTF-8") + URLEncoder.encode(songTitle+" 이 재생됩니다","UTF-8"));
 			response = client.execute(httpttsGet);		
 			
 			HttpEntity httpEntity = response.getEntity();

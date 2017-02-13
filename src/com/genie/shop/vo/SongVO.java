@@ -39,6 +39,8 @@ public class SongVO implements Serializable{
 	private String siteCode;
 	private String sidCode;
 	private String cexpDates;
+	
+	
 	public Long getPlayListUid() {
 		return playListUid;
 	}
