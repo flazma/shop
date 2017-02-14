@@ -12,12 +12,17 @@ import javazoom.jl.player.Player;
 
 public class ShopNGenieAudioPlayer extends Player{
 	
-	/*public ShopNGenieAudioPlayer(File arg0) throws JavaLayerException {
+	
+	/*public ShopNGenieAudioPlayer() throws JavaLayerException {		
+		super();
+	}
+	
+	public ShopNGenieAudioPlayer(File arg0) throws JavaLayerException {
 		FileInputStream fis = new FileInputStream(arg0);
 		super(fis);
 		// TODO Auto-generated constructor stub
-	}*/
-	
+	}
+	*/
 	
 	public ShopNGenieAudioPlayer(InputStream arg0, AudioDevice arg1) throws JavaLayerException {
 		super(arg0, arg1);
@@ -32,11 +37,14 @@ public class ShopNGenieAudioPlayer extends Player{
 	public boolean IS_PLAY = false;
 	public boolean IS_DOWNPLAY = true;
 	
-	@Autowired
-	public ShopDownloadManager shopDownloadManager;
+	/*@Autowired
+	public ShopDownloadManager shopDownloadManager;*/
 	
 	public void play() throws JavaLayerException {
 		super.play();		
 	}
+	
+	
+	
 	
 }

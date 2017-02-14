@@ -6,10 +6,6 @@ import java.io.Serializable;
 public class MediaInfoVO extends SongVO {
 	public File file = null;
 	
-	public Long seq = -1L;
-
-	public Long songUid = -1L;
-	
 	
 	public String filePath ="";
 	
@@ -30,15 +26,7 @@ public class MediaInfoVO extends SongVO {
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
 	}
-
-	public Long getSongUid() {
-		return songUid;
-	}
-
-	public void setSongUid(Long songUid) {
-		this.songUid = songUid;
-	}
-
+	
 	public File getFile() {
 		return file;
 	}
@@ -47,14 +35,5 @@ public class MediaInfoVO extends SongVO {
 		this.file = file;
 	}
 
-	public Long getSeq() {
-		return seq;
-	}
-
-	public void setSeq(Long seq) {
-		this.seq = seq;
-	}
-	
-	
 	
 }

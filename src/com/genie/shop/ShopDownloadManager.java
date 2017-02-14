@@ -122,15 +122,14 @@ public class ShopDownloadManager {
 	}
 	
 	
-	//queue중에 현재 시간에 맞지 않는 음원은 삭제 로직 추가
-	public MediaInfoVO poll(){
+	public MediaInfoVO newPoll(){
 		
 		Long currentTime = Long.parseLong(new java.text.SimpleDateFormat("HHmmss").format(new java.util.Date()));
 		logger.info("before poll size =" + queue.size());
 		MediaInfoVO mediaInfo = queue.poll();
 		Long endTime = Long.parseLong(mediaInfo.getEndTime());
 		
-		//현재 시간보다 종료 시간이 작으면
+		//현재 시간보다 종료 시간이 작으면 해당 음원을 queue에서 삭제한다.
 		if (currentTime > endTime ){
 			Iterator itr = queue.iterator();
 			while(itr.hasNext()){
@@ -138,12 +137,47 @@ public class ShopDownloadManager {
 				endTime = Long.parseLong(mediaInfo.getEndTime());
 				if(currentTime > endTime){
 					queue.remove(mediaInfo);
-					logger.info("media remove in the queue, starttime=" + mediaInfo.getStartTime() +",endtime"+ mediaInfo.getEndTime() + ",seq="+ mediaInfo.getSeq() +",songTitle="+ mediaInfo.getSongTitle() +",songUid=" + mediaInfo.getSongUid() + ",filePath="+mediaInfo.getFilePath());
+					logger.info("media remove in the queue, starttime(" + mediaInfo.getStartTime() +"),endtime("+ mediaInfo.getEndTime() + "),seq("+ mediaInfo.getSeq() +"),songTitle("+ mediaInfo.getSongTitle() +"),songUid(" + mediaInfo.getSongUid() + "),filePath="+mediaInfo.getFilePath());
 				}
 			}			
 		}
 		
-		logger.info("media info is seq=" + mediaInfo.getSeq() +",starttime(" + mediaInfo.getStartTime() +"),endtime("+ mediaInfo.getEndTime() + "),songTitle="+ mediaInfo.getSongTitle() +"songUid=" + mediaInfo.getSongUid() + ",filePath="+mediaInfo.getFilePath());		
+		logger.info("media info is seq=" + mediaInfo.getSeq() +",starttime(" + mediaInfo.getStartTime() +"),endtime("+ mediaInfo.getEndTime() + "),songTitle("+ mediaInfo.getSongTitle() +"),songUid(" + mediaInfo.getSongUid() + "),filePath="+mediaInfo.getFilePath());		
+		logger.info("after poll size =" + queue.size());
+		
+		Iterator itr = queue.iterator();
+		while(itr.hasNext()){
+			MediaInfoVO tmp = (MediaInfoVO)itr.next();
+			logger.info("remain queue info seq("+tmp.getSeq()+"),starttime(" + tmp.getStartTime() +"),endtime("+ tmp.getEndTime() + "),songTitle("+ tmp.getSongTitle() +"),songUid("+tmp.getSongUid()+"),filePath("+tmp.filePath+")");
+		}
+		
+		return mediaInfo;
+		
+	}
+	
+	
+	//queue중에 현재 시간에 맞지 않는 음원은 삭제 로직 추가
+	public MediaInfoVO poll(){
+		
+		//Long currentTime = Long.parseLong(new java.text.SimpleDateFormat("HHmmss").format(new java.util.Date()));
+		logger.info("before poll size =" + queue.size());
+		MediaInfoVO mediaInfo = queue.poll();
+		//Long endTime = Long.parseLong(mediaInfo.getEndTime());
+		
+		//현재 시간보다 종료 시간이 작으면
+		/*if (currentTime > endTime ){
+			Iterator itr = queue.iterator();
+			while(itr.hasNext()){
+				mediaInfo = (MediaInfoVO)itr.next();
+				endTime = Long.parseLong(mediaInfo.getEndTime());
+				if(currentTime > endTime){
+					queue.remove(mediaInfo);
+					logger.info("media remove in the queue, starttime(" + mediaInfo.getStartTime() +"),endtime("+ mediaInfo.getEndTime() + "),seq("+ mediaInfo.getSeq() +"),songTitle("+ mediaInfo.getSongTitle() +"),songUid(" + mediaInfo.getSongUid() + "),filePath="+mediaInfo.getFilePath());
+				}
+			}			
+		}*/
+		
+		logger.info("media info is seq=" + mediaInfo.getSeq() +",starttime(" + mediaInfo.getStartTime() +"),endtime("+ mediaInfo.getEndTime() + "),songTitle("+ mediaInfo.getSongTitle() +"),songUid(" + mediaInfo.getSongUid() + "),filePath="+mediaInfo.getFilePath());		
 		logger.info("after poll size =" + queue.size());
 		
 		Iterator itr = queue.iterator();
@@ -436,56 +470,58 @@ public class ShopDownloadManager {
 		
 		logger.info("is download start!!!"+ ldownloadUrl);
 						
-			String songJson = shopHttpClient.setApiHeader(ldownloadUrl,user.getSessionKey());
-						
-			JSONParser par = new JSONParser();
-			
-			JSONObject json = (JSONObject)par.parse(songJson);
-			JSONObject jsonData = (JSONObject)json.get("data");
-			String rtCode = (String)jsonData.get("rtCode");
-			
-			if ("0".equals(rtCode)){
-			
-				JSONArray jsonResult = (JSONArray)((JSONObject)jsonData.get("params")).get("dnList");
-				
-				for(int i=0,j=jsonResult.size(); i < j ; i++){
-					JSONObject songObject = (JSONObject)jsonResult.get(i);
-					MediaInfoVO mediaInfo = new MediaInfoVO();
-					
-					
-					mediaInfo.setSeq((Long)songObject.get("seq"));
-					mediaInfo.setSongUid((Long)songObject.get("songUid"));
-					mediaInfo.setCdnPath(StringUtils.trimToEmpty((String)songObject.get("filePath")));
-					
-					logger.info("\tdownload info=mediaInfo.getSeq()"+ mediaInfo.getSeq() +",getSongUid()"+ mediaInfo.getSongUid()+",getFilePath()"+ mediaInfo.getFilePath());
-										
-					File file = new File("./cache/"+ mediaInfo.getSongUid() +".mp3");
-					InputStream instream = shopHttpClient.getMedia(mediaInfo.getCdnPath());
-					FileOutputStream output = new FileOutputStream(file);
-					
-					mediaInfo.setFilePath(file.getPath());
-					
-					logger.info("\t mp3 disk write="+ file.getPath());
+		String songJson = shopHttpClient.setApiHeader(ldownloadUrl,user.getSessionKey());
+
+		logger.info("is download json :"+ songJson+":");
 		
-			        try {
-			            int l;
-			            byte[] tmp = new byte[2048];
-			            while ( (l = instream.read(tmp)) != -1 ) {
-			                output.write(tmp, 0, l);
-			            }
-			        } finally {
-			        	try{output.close();}catch(Exception e){}
-			        	try{instream.close();}catch(Exception e){}	            
-			        }
-					
-			        mediaInfo.setFile(file);
-					
-					arrMedia.add(mediaInfo);
-					queue.add(mediaInfo);
-				}
+		JSONParser par = new JSONParser();
+		
+		JSONObject json = (JSONObject)par.parse(songJson);
+		JSONObject jsonData = (JSONObject)json.get("data");
+		String rtCode = (String)jsonData.get("rtCode");
+		
+		if ("0".equals(rtCode)){
+		
+			JSONArray jsonResult = (JSONArray)((JSONObject)jsonData.get("params")).get("dnList");
+			
+			for(int i=0,j=jsonResult.size(); i < j ; i++){
+				JSONObject songObject = (JSONObject)jsonResult.get(i);
+				MediaInfoVO mediaInfo = new MediaInfoVO();
 				
-				logger.info("\tis downloaded end!!!");
+				
+				mediaInfo.setSeq((Long)songObject.get("seq"));
+				mediaInfo.setSongUid((Long)songObject.get("songUid"));
+				mediaInfo.setCdnPath(StringUtils.trimToEmpty((String)songObject.get("filePath")));
+				
+				logger.info("\tdownload info=mediaInfo.getSeq()"+ mediaInfo.getSeq() +",getSongUid()"+ mediaInfo.getSongUid()+",getCdnPath()"+ mediaInfo.getCdnPath());
+									
+				File file = new File("./cache/"+ mediaInfo.getSongUid() +".mp3");
+				InputStream instream = shopHttpClient.getMedia(mediaInfo.getCdnPath());
+				FileOutputStream output = new FileOutputStream(file);
+				
+				mediaInfo.setFilePath(file.getPath());
+				
+				logger.info("\t mp3 disk write="+ file.getPath());
+	
+		        try {
+		            int l;
+		            byte[] tmp = new byte[2048];
+		            while ( (l = instream.read(tmp)) != -1 ) {
+		                output.write(tmp, 0, l);
+		            }
+		        } finally {
+		        	try{output.close();}catch(Exception e){}
+		        	try{instream.close();}catch(Exception e){}	            
+		        }
+				
+		        mediaInfo.setFile(file);
+				
+				arrMedia.add(mediaInfo);
+				queue.add(mediaInfo);
 			}
+			
+			logger.info("\tis downloaded end!!!");
+		}
 			
 		
 		//return arrMedia;

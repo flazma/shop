@@ -631,13 +631,13 @@ public class ShopHttpClient{
 	}
 	
 	/**
-	 * schedule정보 조회
+	 * 현재곡 조회
 	 * 
 	 * @param songJson
 	 * @return
 	 * @throws Exception
 	 */
-	public ArrayList<SongVO> parseSongInfo(UserVO userInfoLogin, ChannelVO songChannel, Long seq) throws Exception{
+	public ArrayList<SongVO> parseCurrentSongInfo(UserVO userInfoLogin, ChannelVO songChannel, Long seq) throws Exception{
 		
 		
 		//����� ��ȸ
@@ -704,7 +704,7 @@ public class ShopHttpClient{
 				songInfo.setSiteCode(StringUtils.trimToEmpty((String)songObject.get("siteCode")));
 				songInfo.setSidCode(StringUtils.trimToEmpty((String)songObject.get("sidCode")));
 				songInfo.setCexpDates(StringUtils.trimToEmpty((String)songObject.get("cexpdates")));
-				logger.info(new Date() + ",seq=" +songInfo.getSeq()+",songUid=" + songInfo.getSongUid()+",artist="+songInfo.getArtistName()+",title="+songInfo.getSongTitle()+",playstarttime="+songInfo.getPlayStartRunTime());			
+				logger.info("seq=" +songInfo.getSeq()+",starttime="+songInfo.getStartTime() +",endtime="+ songInfo.getEndTime()+",songUid="+songInfo.getSongUid()+",artist="+songInfo.getArtistName()+",title="+songInfo.getSongTitle()+",playstarttime="+songInfo.getPlayStartRunTime());			
 				
 				arrSongInfo.add(songInfo);
 			}
