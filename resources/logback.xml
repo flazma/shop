@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+   <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern> %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}[%method:%line] - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/data.log</file>
+        <!-- <file>./logs/data.log</file> -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 파일이 하루에 한개씩 생성된다 -->
+            <fileNamePattern>./logs/data.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <!-- maxHIstory 설정은 위 부분에 롤링 정책에 따라 적용되 된다고 보면된다.
+             	위 설정데로 라면 30일이 지난 파일은 삭제가 된다.-->
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+ 
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}[%method:%line] - %msg%n</pattern>
+        </encoder>
+    </appender>
+ 
+    <logger name="com.genie.shop.ShopNGenieController" level="INFO"/>
+    
+    <root level="INFO">
+        <appender-ref ref="FILE" />
+        <appender-ref ref="console" />
+    </root>
+</configuration>

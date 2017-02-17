@@ -17,7 +17,7 @@ public class PlayerMain {
 
 		// ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) context.getBean("taskExecutor");
 		 
-		 ShopNGenieController obj = (ShopNGenieController) context.getBean("shopNGenieController");
+		 ShopNGenieService obj = (ShopNGenieService) context.getBean("shopNGenieService");
 		 
 	     obj.setShopId(args[0]);
 	     obj.setShopPasswd(args[1]);

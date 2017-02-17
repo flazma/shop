@@ -32,7 +32,7 @@
 	
 	<util:properties id="config" location="config.properties" />
 	
-	<bean id="shopNGenieController"  class="com.genie.shop.ShopNGenieController">
+	<bean id="shopNGenieService"  class="com.genie.shop.ShopNGenieService">
 		<property name="shopHttpClient" ref="shopHttpClient"/>
 		<property name="shopDownloadManager" ref="shopDownloadManager"/>
 	</bean>

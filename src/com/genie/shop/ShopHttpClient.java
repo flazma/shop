@@ -97,6 +97,26 @@ public class ShopHttpClient{
 	public String daySchedulesUrl = "";
 	
 	
+	public String shopId;
+	public String shopPasswd;
+	
+	
+	public String getShopId() {
+		return shopId;
+	}
+
+	public void setShopId(String shopId) {
+		this.shopId = shopId;
+	}
+
+	public String getShopPasswd() {
+		return shopPasswd;
+	}
+
+	public void setShopPasswd(String shopPasswd) {
+		this.shopPasswd = shopPasswd;
+	}
+
 	public String getBasicId() {
 		return basicId;
 	}
@@ -215,12 +235,11 @@ public class ShopHttpClient{
 		httpget.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
 		
 		if ( xauth != null){
-			httpget.setHeader("X-AuthorityKey", xauth);
+			logger.info("X-AuthorityKey:"+ xauth);
+			httpget.setHeader("X-AuthorityKey", xauth);			
 		}
 		
 		HttpResponse response = client.execute(httpget);
-		int statusCode = response.getStatusLine().getStatusCode();
-		
 		httpEntity = response.getEntity();
 		
 		return EntityUtils.toString(httpEntity);
@@ -248,12 +267,11 @@ public class ShopHttpClient{
 		httppost.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
 		
 		if ( xauth != null){
+			logger.info("X-AuthorityKey:"+ xauth);
 			httppost.setHeader("X-AuthorityKey", xauth);
 		}
 		
 		HttpResponse response = client.execute(httppost);
-		int statusCode = response.getStatusLine().getStatusCode();
-		
 		HttpEntity httpEntity = response.getEntity();
 		
 		return EntityUtils.toString(httpEntity);
@@ -288,18 +306,30 @@ public class ShopHttpClient{
 		
 	}
 	
+	
+	public UserVO loginUser() throws Exception{
+		return loginUser(shopId,shopPasswd);
+	}
+	
 	/**
 	 * userInfo parse
 	 * @param loginJson
 	 * @return
 	 * @throws Exception
 	 */
-	public UserVO parseUserInfo(List<NameValuePair> formparams) throws Exception{
+	public UserVO loginUser(String shopId, String shopPasswd) throws Exception{
+		
+		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
+		formparams.add(new BasicNameValuePair("shopId", shopId));
+		formparams.add(new BasicNameValuePair("shopPassword", shopPasswd));
 		
 		String loginJson = setPostApiHeader( loginUrl,formparams);
 		
+		logger.info("login json=" + loginJson);
 		
-		UserVO userInfo = null;
+		UserVO userInfo = new UserVO();
+		String sessionKey = "";
+		String rtMsg = "";
 		
 		JSONParser par = new JSONParser();
 		
@@ -308,19 +338,16 @@ public class ShopHttpClient{
 		String rtCode = StringUtils.trimToEmpty((String)jsonData.get("rtCode"));
 		
 		if ("0".equals(rtCode)){
-			userInfo = new UserVO();
-			userInfo.setSessionKey(StringUtils.trimToEmpty((String)jsonData.get("sessionKey")));
-			userInfo.setRtCode(StringUtils.trimToEmpty((String)jsonData.get("rtCode")));
-			userInfo.setRtMsg(StringUtils.trimToEmpty((String)jsonData.get("rtMsg")));
 			
-			JSONObject jsonParams = (JSONObject)jsonData.get("params");
-			
-			userInfo.setChainUid((Long)jsonParams.get("chainUid"));
-			userInfo.setShopUid((Long)jsonParams.get("shopUid"));
+			sessionKey = StringUtils.trimToEmpty((String)jsonData.get("sessionKey"));
+			rtCode = StringUtils.trimToEmpty((String)jsonData.get("rtCode"));
+			rtMsg = StringUtils.trimToEmpty((String)jsonData.get("rtMsg"));
 		
+		}else{
+			throw new Exception("error :" + rtCode+","+rtMsg);
 		}
 		
-		return userInfo;		
+		return getAccountInfo(shopId,sessionKey);		
 		
 	}
 	
@@ -331,7 +358,7 @@ public class ShopHttpClient{
 	 * @return
 	 * @throws Exception
 	 */
-	public AppInfoVO parseAppInfo(UserVO userInfoLogin) throws Exception {
+	public AppInfoVO getAppInfo(UserVO userInfoLogin) throws Exception {
 		
 		String reAppInfo = StringUtils.replace(appInfoUrl, "#chainUid#", "" + userInfoLogin.getChainUid());
 		reAppInfo = StringUtils.replace(reAppInfo, "#shopUid#", "" + userInfoLogin.getShopUid());
@@ -382,7 +409,7 @@ public class ShopHttpClient{
 	 * @return
 	 * @throws Exception
 	 */
-	public ChannelVO parseChannelInfo(String shopId) throws Exception{
+	public ChannelVO getChannelInfo(String shopId) throws Exception{
 		
 		
 		String channelJson = setApiHeader(StringUtils.replace(lastSchedulesUrl, "#shopId#", shopId));
@@ -421,7 +448,7 @@ public class ShopHttpClient{
 	 * @return
 	 * @throws Exception
 	 */
-	public ArrayList<ChannelVO> parseChannelList(UserVO userInfoLogin,ChannelVO lastChannelInfo) throws Exception{
+	public ArrayList<ChannelVO> getChannelList(UserVO userInfoLogin,ChannelVO lastChannelInfo) throws Exception{
 		
 		
 		String reSchduleUrl = StringUtils.replace(schedulesUrl, "#scheduleId#", "" + lastChannelInfo.getChannelUid());
@@ -477,7 +504,7 @@ public class ShopHttpClient{
 	 * @return
 	 * @throws Exception
 	 */
-	public ArrayList<SongVO> parseDaySchedules(Long channelUid, Long schedulesUid, Long chainUid, String sessionKey) throws Exception{
+	public ArrayList<SongVO> getDaySchedules(Long channelUid, Long schedulesUid, Long chainUid, String sessionKey) throws Exception{
 		
 		//#channelUid#/schedules/#schedulesUid#?chainUid=#chainUid#
 		String tmpDaySchedulesUrl = StringUtils.replace(daySchedulesUrl, "#channelUid#", "" + channelUid);		
@@ -553,7 +580,7 @@ public class ShopHttpClient{
 	 * @return
 	 * @throws Exception
 	 */
-	public UserVO parseAccountInfo(String shopId, String sessionKey) throws Exception{
+	public UserVO getAccountInfo(String shopId, String sessionKey) throws Exception{
 		
 		String accountJson = setApiHeader(StringUtils.replace(userInfoUrl, "#shopId#", shopId),sessionKey);
 		
@@ -604,7 +631,7 @@ public class ShopHttpClient{
 			
 			JSONArray jsonProductArray = (JSONArray)((JSONObject)jsonResult.get("productList")).get("myProductList");
 					
-			//��ǰ ���� parse
+			//상품 정보 parse
 			for(int i=0,j=jsonProductArray.size(); i < j ; i++){
 				JSONObject product = (JSONObject)jsonProductArray.get(i);
 				ProductVO productInfo = new ProductVO();
@@ -626,32 +653,34 @@ public class ShopHttpClient{
 				
 				userInfo.getProductList().add(productInfo);				
 			}
+			
+			userInfo.setSessionKey(sessionKey);
+			
 		}
 		return userInfo;
 	}
 	
 	/**
 	 * 현재곡 조회
-	 * 
+	 * 중복 로그인 시 강제 로그인을 진행 후 현재 재생곡 조회 진행
 	 * @param songJson
 	 * @return
 	 * @throws Exception
 	 */
-	public ArrayList<SongVO> parseCurrentSongInfo(UserVO userInfoLogin, ChannelVO songChannel, Long seq) throws Exception{
+	public ArrayList<SongVO> getCurrentSong(UserVO userVO, ChannelVO songChannel, Long seq) throws Exception{
 		
-		
-		//����� ��ȸ
+
 		String strCurrentSongUrl = StringUtils.replace(currentSongUrl, "#channelUid#", "" + songChannel.getChannelUid());
 		strCurrentSongUrl = StringUtils.replace(strCurrentSongUrl, "#schedulesUid#", "" + songChannel.getScheduleUid());
-		strCurrentSongUrl = StringUtils.replace(strCurrentSongUrl, "#shopUid#", "" + userInfoLogin.getShopUid());		
+		strCurrentSongUrl = StringUtils.replace(strCurrentSongUrl, "#shopUid#", "" + userVO.getShopUid());		
 		strCurrentSongUrl = StringUtils.replace(strCurrentSongUrl, "#seq#", "" + seq);
 		
-		String songJson = setApiHeader(strCurrentSongUrl,userInfoLogin.getSessionKey());
+		String songJson = setApiHeader(strCurrentSongUrl,userVO.getSessionKey());
 		
 		
 		logger.info("schedule songInfo "+ songJson+"\n");
 		
-		ArrayList<SongVO> arrSongInfo = new ArrayList();
+		ArrayList<SongVO> arrSongInfo = null;
 				
 		JSONParser par = new JSONParser();
 		
@@ -661,10 +690,40 @@ public class ShopHttpClient{
 		String rtCode = (String)jsonData.get("rtCode");
 		
 		
-		if ( "0".equals(rtCode)){
-		
-			JSONArray jsonResult = (JSONArray)((JSONObject)jsonData.get("params")).get("song");
+		if ( "0".equals(rtCode)){	//성공이면		
 			
+			JSONArray jsonResult = (JSONArray)((JSONObject)jsonData.get("params")).get("song");
+			arrSongInfo = parseSong(jsonResult);
+			
+		}/*else if ("SG4035".equals(rtCode)){ //중복 로그인 이면
+			
+			//강제 로그인
+			userVO = loginUser();
+			
+			getChannelInfo(shopId);
+			
+			songJson = setApiHeader(strCurrentSongUrl,userVO.getSessionKey());
+			
+			json = (JSONObject)par.parse(songJson);
+			jsonData = (JSONObject)json.get("data");
+			
+			rtCode = (String)jsonData.get("rtCode");
+			
+			JSONArray jsonResult = (JSONArray)((JSONObject)jsonData.get("params")).get("song");
+			arrSongInfo = parseSong(jsonResult);
+		}
+		*/
+		return arrSongInfo;
+		
+	}
+	
+	
+	private ArrayList<SongVO> parseSong(JSONArray jsonResult){
+		
+		ArrayList<SongVO> arrSongInfo = new ArrayList<SongVO>();
+		
+		if ( jsonResult != null){
+		
 			for(int i=0,j=jsonResult.size(); i < j ; i++){
 				JSONObject songObject = (JSONObject)jsonResult.get(i);
 				SongVO songInfo = new SongVO();
@@ -709,9 +768,12 @@ public class ShopHttpClient{
 				arrSongInfo.add(songInfo);
 			}
 		}
+		
 		return arrSongInfo;
 		
 	}
+	
+	
 	
 	/**
 	 * ��Ʈ���� ���� 
@@ -773,142 +835,8 @@ public class ShopHttpClient{
 		
 	}*/
 	
-	
-	
-	
-	
-	/**
-	 * ��Ʈ���� �� ���� ���, �߰� ��� (seek) ����, http progressive streaming ����(Range, bytes=0 �� �̿��Ͽ� ����)
-	 * @param songInfo
-	 */
-	public void streamingPlayMusic(SongVO songInfo){
-		
-		client = new DefaultHttpClient();
-		Long starttime = 0L;
-		Long startByte = 0L;
-		HttpGet httpget = new HttpGet(songInfo.getStreamUrl());
-		httpget.removeHeaders("Authorization");
-		httpget.removeHeaders("X-AuthorityKey");
-		
-		if ( songInfo.getPlayStartRunTime() != 0){
-			
-			if (songInfo.getPlayStartRunTime() < 20){
-				startByte = 0L;
-			}else{
-				starttime = songInfo.getPlayStartRunTime();
-				startByte = (starttime*128*1024)/8;
-			}			
-		
-			httpget.addHeader("Range", "bytes=" + startByte + "-");		
-		}
-
-		HttpResponse response =null;
-		BasicPlayer player = null;
-		
-		try{
-			response = client.execute(httpget);		
-			int statusCode = response.getStatusLine().getStatusCode();			
-			
-			HttpEntity httpEntity = response.getEntity();			
-	          
-			player = new BasicPlayer();
-			player.open(httpEntity.getContent());
-			logger.info("\nplayer position:"+(Long)startByte);
-			player.play();
-			
-			player.seek(startByte);
-       } catch (Exception e) {
-           logger.warn(e.toString());
-       }
-	          
-	}
-	
-	
 	public HttpClient getClient(){
 		return client;
-	}
-	
-	
-	/**
-	 * 5�� �ٿ�ε� ���μ���
-	 * ������ CM���δ� api���� Ȯ�� �ȵǹǷ�, api ���� �ǰ�
-	 * @param user
-	 * @param channelInfo
-	 * @param seq
-	 * @return
-	 * @throws Exception
-	 */
-	public ArrayList<MediaInfoVO> getDownloadMedia(UserVO user, ChannelVO channelInfo, Long seq) throws Exception {
-				
-		String ldownloadUrl = StringUtils.replace(downloadUrl, "#channelUid#", "" + channelInfo.getChannelUid());
-		ldownloadUrl = StringUtils.replace(ldownloadUrl, "#schedulesUid#", "" + channelInfo.getScheduleUid());
-		ldownloadUrl = StringUtils.replace(ldownloadUrl, "#shopUid#", "" + user.getShopUid());
-		
-		String songList = "";
-		
-		//download list ���ڿ� ��
-		ShopDownloadManager shopDownloadManager = new ShopDownloadManager();
-		int gap = 5 - shopDownloadManager.queue.size();
-	
-		Iterator itr = shopDownloadManager.queue.iterator();
-		
-		if ( shopDownloadManager.queue.isEmpty()) {
-			for ( Long i=seq, j = i+5; i<j; i++){
-				songList += i + ",";
-			}
-			songList = songList.substring(0, songList.length()-1);
-		}else{
-		
-			while(itr.hasNext()){
-				MediaInfoVO media = (MediaInfoVO)itr.next();
-				
-			}
-		}
-		
-		ldownloadUrl = StringUtils.replace(ldownloadUrl, "#songList#", songList);
-		
-		
-		ArrayList<MediaInfoVO> arrMedia = new ArrayList<MediaInfoVO>();
-		
-		String songJson = setApiHeader(ldownloadUrl,user.getSessionKey());
-		
-		JSONParser par = new JSONParser();
-		
-		JSONObject json = (JSONObject)par.parse(songJson);
-		JSONObject jsonData = (JSONObject)json.get("data");		
-		JSONArray jsonResult = (JSONArray)((JSONObject)jsonData.get("params")).get("dnList");
-		
-		for(int i=0,j=jsonResult.size(); i < j ; i++){
-			JSONObject songObject = (JSONObject)jsonResult.get(i);
-			MediaInfoVO mediaInfo = new MediaInfoVO();
-			
-			
-			mediaInfo.setSeq((Long)songObject.get("seq"));
-			mediaInfo.setSongUid((Long)songObject.get("songUid"));
-			mediaInfo.setFilePath(StringUtils.trimToEmpty((String)songObject.get("filePath")));
-			
-			
-			File file = new File("./cache/"+ mediaInfo.getSongUid() +".mp3");
-			InputStream instream = getMedia(mediaInfo.filePath);
-			FileOutputStream output = new FileOutputStream(file);
-
-	        try {
-	            int l;
-	            byte[] tmp = new byte[2048];
-	            while ( (l = instream.read(tmp)) != -1 ) {
-	                output.write(tmp, 0, l);
-	            }
-	        } finally {
-	        	try{output.close();}catch(Exception e){}
-	        	try{instream.close();}catch(Exception e){}	            
-	        }
-			
-			
-			arrMedia.add(mediaInfo);
-		}
-		
-		
-		return arrMedia;
 	}
 	
 	
@@ -939,11 +867,11 @@ public class ShopHttpClient{
 	
 	
 	/**
-	 * CDN���� �ٿ�ε� ����
+	 * CDN에 따른 스트링 리턴
 	 * @param url
 	 * @return
 	 */
-	public InputStream getMedia(String url) {
+	public InputStream getCDNMedia(String url) {
 		HttpGet httpttsGet = null;
 		HttpResponse response =null;
 		HttpEntity httpEntity =  null;
