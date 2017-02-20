@@ -2,18 +2,16 @@ package com.genie.shop;
 
 
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -34,13 +32,11 @@ import org.springframework.stereotype.Component;
 
 import com.genie.shop.vo.AppInfoVO;
 import com.genie.shop.vo.ChannelVO;
-import com.genie.shop.vo.MediaInfoVO;
 import com.genie.shop.vo.ProductVO;
 import com.genie.shop.vo.SongVO;
 import com.genie.shop.vo.UserVO;
 
 import javazoom.jl.player.Player;
-import javazoom.jlgui.basicplayer.BasicPlayer;
 
 
 @Component
@@ -229,7 +225,16 @@ public class ShopHttpClient{
 		
 		HttpGet httpget = new HttpGet(apiUrl + url);
 		HttpEntity httpEntity = null;
-				
+		
+		Header[] preHeader = httpget.getAllHeaders();
+		
+		logger.info("get header size is " + preHeader.length);
+		
+		for(Header hea : preHeader){
+			logger.info("get header name is(" + hea.getName() + "),(" + hea.getValue() +")");
+		}
+		
+		
 		httpget.removeHeaders("Authorization");
 		httpget.removeHeaders("X-AuthorityKey");
 		httpget.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
@@ -238,6 +243,14 @@ public class ShopHttpClient{
 			logger.info("X-AuthorityKey:"+ xauth);
 			httpget.setHeader("X-AuthorityKey", xauth);			
 		}
+		
+		
+		Header[] header = httpget.getAllHeaders();
+		for(Header hea : header){
+			logger.info("get header name is(" + hea.getName() + "),(" + hea.getValue() +")");
+		}
+		
+		logger.info("[add Authorization,X-AuthorityKey]get header size is " + header.length);
 		
 		HttpResponse response = client.execute(httpget);
 		httpEntity = response.getEntity();
@@ -261,6 +274,14 @@ public class ShopHttpClient{
 	public String setPostApiHeader(String url,List<NameValuePair> formparams, String xauth) throws Exception{		
 		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, "UTF-8");
 		HttpPost httppost = new HttpPost(apiUrl + url);
+		
+		Header[] preHeader = httppost.getAllHeaders();
+		logger.info("post header size is " + preHeader.length);
+		for(Header hea : preHeader){
+			logger.info("get header name is(" + hea.getName() + "),(" + hea.getValue() +")");
+		}
+		
+		
 		httppost.removeHeaders("Authorization");		
 		httppost.removeHeaders("X-AuthorityKey");
 		httppost.setEntity(entity);		
@@ -270,6 +291,15 @@ public class ShopHttpClient{
 			logger.info("X-AuthorityKey:"+ xauth);
 			httppost.setHeader("X-AuthorityKey", xauth);
 		}
+		
+		
+		
+		Header[] header = httppost.getAllHeaders();
+		for(Header hea : header){
+			logger.info("post header name is(" + hea.getName() + "),(" + hea.getValue() +")");
+		}
+		
+		logger.info("[add Authorization,X-AuthorityKey]post header size is " + header.length);
 		
 		HttpResponse response = client.execute(httppost);
 		HttpEntity httpEntity = response.getEntity();
