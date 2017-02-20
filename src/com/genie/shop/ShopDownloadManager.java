@@ -198,9 +198,10 @@ public class ShopDownloadManager {
 	 * @param media
 	 */
 	public void addEQueue(MediaInfoVO media){
-		int gap = emeAodPool.size() - EMER_MAX_SIZE;
 		
-		logger.info("addEQueue]add emergency pool gap is " + gap + "/" + emeAodPool.size());
+		copyToEmergencyQueue(media);
+		
+		int gap = emeAodPool.size() - EMER_MAX_SIZE;
 		
 		if (!"CM".equals(media.getSongType())){
 						
@@ -212,18 +213,16 @@ public class ShopDownloadManager {
 					filePath = StringUtils.replace(filePath, aodFileType, jsonFileType);
 					
 					File jsonFile = new File(filePath);
-					
-					logger.info("initialization emergency pool delete count " + i  + "("+ filePath +")");
-					
+				
 					jsonFile.delete();					
 					tMedia.file.delete();
 					emeAodPool.remove(tMedia);
 					
-				}
+				}				
 			}
 			
-			copyToEmergencyQueue(media);
-			emeAodPool.add(media);
+			
+						
 		}
 		
 		
@@ -235,9 +234,7 @@ public class ShopDownloadManager {
 	 */
 	public void moveToEmergencyQueue(MediaInfoVO media){
 		
-		logger.info("#####move to file");
 		File orgFile = media.getFile();
-		logger.info("#####org file path =" + orgFile.getPath());
 		
 		String org = media.getFilePath();
 		String to = localDownloadPath = File.separator + media.getSongUid() + "." + aodFileType;
@@ -270,8 +267,6 @@ public class ShopDownloadManager {
 		String to = emergencyDownloadPath + File.separator + media.getSongUid() + "." + aodFileType;
 		String org = orgFile.getPath();
 		
-		logger.info("##########copy to emergency file " + to);
-		
 		try{
             fis = new FileInputStream(orgFile.getPath());
             fos = new FileOutputStream(to);
@@ -299,14 +294,6 @@ public class ShopDownloadManager {
 		File toFile = new File(to);
 		media.setFile(toFile);
 		media.setFilePath(toFile.getPath());
-		
-		/*if(orgFile.delete()){
-			logger.info("####cache file is deleted");
-			
-		}else{
-			logger.info("####error cache file is deleted");
-		}*/
-		
 		
 		//비상용 음원으로 저장 시 CM인지 여부 확인 필요
 		if (!"CM".equals(media.getSongType())){

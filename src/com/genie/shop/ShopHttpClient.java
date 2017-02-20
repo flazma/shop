@@ -306,6 +306,27 @@ public class ShopHttpClient{
 		
 	}
 	
+	/*public void sendPlayLog(SongVO songInfo, List<NameValuePair> formparams) throws Exception {
+
+		logger.info("is play log songUid=" + songInfo.getSongUid() + ",title=" + songInfo.getSongTitle());
+		
+		formparams.add(new BasicNameValuePair("siteCode", songInfo.getSiteCode()));
+		formparams.add(new BasicNameValuePair("sidCode", songInfo.getSidCode()));
+		formparams.add(new BasicNameValuePair("chainUid", "" + songInfo.getChainUid()));
+		formparams.add(new BasicNameValuePair("shopUid", "" + userInfo.getShopUid() ));
+		formparams.add(new BasicNameValuePair("channelUid", "" + songInfo.getChannelUid() ));
+		formparams.add(new BasicNameValuePair("albumUid", "" + songInfo.getAlbumUid() ));
+		formparams.add(new BasicNameValuePair("scheduleUid", "" + songInfo.getScheduleUid() ));
+		formparams.add(new BasicNameValuePair("songUid", "" + songInfo.getSongUid() ));
+		formparams.add(new BasicNameValuePair("songLid", "" + songInfo.getSongLid() ));
+		formparams.add(new BasicNameValuePair("cmYn", "" + (songInfo.getSongType().equals("CM") ? "Y" : "N" ) ));
+		
+		String songJson = setPostApiHeader(playLogUrl,formparams,userInfo.getSessionKey());
+		
+		logger.info("is play log result =" + songJson);
+		
+	}*/
+	
 	
 	public UserVO loginUser() throws Exception{
 		return loginUser(shopId,shopPasswd);
@@ -457,6 +478,8 @@ public class ShopHttpClient{
 		
 		
 		String channelJson = setApiHeader(reSchduleUrl);
+		
+		logger.info("channel list :" + channelJson);
 		
 		ArrayList<ChannelVO> arrChannelInfo = new ArrayList();
 		
@@ -695,10 +718,12 @@ public class ShopHttpClient{
 			JSONArray jsonResult = (JSONArray)((JSONObject)jsonData.get("params")).get("song");
 			arrSongInfo = parseSong(jsonResult);
 			
-		}/*else if ("SG4035".equals(rtCode)){ //중복 로그인 이면
+		}else if ("SG4035".equals(rtCode)){ //중복 로그인 이면
 			
+			
+			throw new Exception("강제 로그인으로 인한 비상용 음원 재생");
 			//강제 로그인
-			userVO = loginUser();
+			/*userVO = loginUser();
 			
 			getChannelInfo(shopId);
 			
@@ -710,9 +735,9 @@ public class ShopHttpClient{
 			rtCode = (String)jsonData.get("rtCode");
 			
 			JSONArray jsonResult = (JSONArray)((JSONObject)jsonData.get("params")).get("song");
-			arrSongInfo = parseSong(jsonResult);
+			arrSongInfo = parseSong(jsonResult);*/
 		}
-		*/
+		
 		return arrSongInfo;
 		
 	}
