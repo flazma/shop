@@ -6,7 +6,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 
 public class PlayerMain {
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 		
 		if (args.length <2){
 			System.out.println("required shopId , shopPassword!!");
@@ -21,9 +21,6 @@ public class PlayerMain {
 		 
 	     obj.setShopId(args[0]);
 	     obj.setShopPasswd(args[1]);
-
-	     obj.loadConfig();
-	     obj.checkConfiguration();		
 	     obj.run();
 	     
 	   }

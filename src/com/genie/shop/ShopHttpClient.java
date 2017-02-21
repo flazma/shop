@@ -51,6 +51,9 @@ public class ShopHttpClient{
 	public String sessionKey = "";
 	
 	
+	@Value("#{config['user.agent']}")
+	private String userAgent = "";
+	
 	@Value("#{config['basic.id']}")
 	private String basicId = "";
 	
@@ -202,7 +205,38 @@ public class ShopHttpClient{
 	}
 	
 	
-	
+	public String forceLogin() throws Exception {
+		
+		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
+		formparams.add(new BasicNameValuePair("shopId", shopId));
+		formparams.add(new BasicNameValuePair("shopPassword", shopPasswd));
+		
+		String loginJson = setPostApiHeader( loginUrl,formparams,true);
+		
+		logger.info("login json=" + loginJson);
+		
+		UserVO userInfo = new UserVO();
+		String sessionKey = "";
+		String rtMsg = "";
+		
+		JSONParser par = new JSONParser();
+		
+		JSONObject json = (JSONObject)par.parse(loginJson);
+		JSONObject jsonData = (JSONObject)json.get("data");		
+		String rtCode = StringUtils.trimToEmpty((String)jsonData.get("rtCode"));
+		
+		if ("0".equals(rtCode)){
+			
+			sessionKey = StringUtils.trimToEmpty((String)jsonData.get("sessionKey"));
+			rtCode = StringUtils.trimToEmpty((String)jsonData.get("rtCode"));
+			rtMsg = StringUtils.trimToEmpty((String)jsonData.get("rtMsg"));
+		
+		}else{
+			throw new Exception("error :" + rtCode+","+rtMsg);
+		}
+		
+		return sessionKey;
+	}
 	
 	/**
 	 * API 헤더 추가, X auth 및 basic auth
@@ -226,31 +260,17 @@ public class ShopHttpClient{
 		HttpGet httpget = new HttpGet(apiUrl + url);
 		HttpEntity httpEntity = null;
 		
-		Header[] preHeader = httpget.getAllHeaders();
-		
-		logger.info("get header size is " + preHeader.length);
-		
-		for(Header hea : preHeader){
-			logger.info("get header name is(" + hea.getName() + "),(" + hea.getValue() +")");
-		}
-		
-		
+		httpget.removeHeaders("User-Agent");
 		httpget.removeHeaders("Authorization");
 		httpget.removeHeaders("X-AuthorityKey");
-		httpget.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
 		
+		
+		httpget.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
+		httpget.setHeader("User-Agent",userAgent );		
 		if ( xauth != null){
 			logger.info("X-AuthorityKey:"+ xauth);
 			httpget.setHeader("X-AuthorityKey", xauth);			
 		}
-		
-		
-		Header[] header = httpget.getAllHeaders();
-		for(Header hea : header){
-			logger.info("get header name is(" + hea.getName() + "),(" + hea.getValue() +")");
-		}
-		
-		logger.info("[add Authorization,X-AuthorityKey]get header size is " + header.length);
 		
 		HttpResponse response = client.execute(httpget);
 		httpEntity = response.getEntity();
@@ -261,8 +281,17 @@ public class ShopHttpClient{
 	
 	
 	public String setPostApiHeader(String url,List<NameValuePair> formparams) throws Exception{
-		return setPostApiHeader(url,formparams,null);
+		return setPostApiHeader(url,formparams,null,false);
 	}
+	
+	public String setPostApiHeader(String url,List<NameValuePair> formparams,boolean isNew) throws Exception{
+		return setPostApiHeader(url,formparams,null,isNew);
+	}
+	
+	public String setPostApiHeader(String url,List<NameValuePair> formparams,String xauth) throws Exception{
+		return setPostApiHeader(url,formparams,xauth,false);
+	}
+	
 	
 	/**
 	 * POST용 API 
@@ -271,37 +300,24 @@ public class ShopHttpClient{
 	 * @return
 	 * @throws Exception
 	 */
-	public String setPostApiHeader(String url,List<NameValuePair> formparams, String xauth) throws Exception{		
+	public String setPostApiHeader(String url,List<NameValuePair> formparams, String xauth,boolean isNew) throws Exception{		
 		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, "UTF-8");
 		HttpPost httppost = new HttpPost(apiUrl + url);
 		
-		Header[] preHeader = httppost.getAllHeaders();
-		logger.info("post header size is " + preHeader.length);
-		for(Header hea : preHeader){
-			logger.info("get header name is(" + hea.getName() + "),(" + hea.getValue() +")");
-		}
-		
-		
+		httppost.removeHeaders("User-Agent");
 		httppost.removeHeaders("Authorization");		
 		httppost.removeHeaders("X-AuthorityKey");
+		
 		httppost.setEntity(entity);		
 		httppost.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
-		
+		httppost.setHeader("User-Agent",userAgent );				
 		if ( xauth != null){
 			logger.info("X-AuthorityKey:"+ xauth);
 			httppost.setHeader("X-AuthorityKey", xauth);
 		}
 		
+		HttpResponse response =  client.execute(httppost);
 		
-		
-		Header[] header = httppost.getAllHeaders();
-		for(Header hea : header){
-			logger.info("post header name is(" + hea.getName() + "),(" + hea.getValue() +")");
-		}
-		
-		logger.info("[add Authorization,X-AuthorityKey]post header size is " + header.length);
-		
-		HttpResponse response = client.execute(httppost);
 		HttpEntity httpEntity = response.getEntity();
 		
 		return EntityUtils.toString(httpEntity);
@@ -336,26 +352,6 @@ public class ShopHttpClient{
 		
 	}
 	
-	/*public void sendPlayLog(SongVO songInfo, List<NameValuePair> formparams) throws Exception {
-
-		logger.info("is play log songUid=" + songInfo.getSongUid() + ",title=" + songInfo.getSongTitle());
-		
-		formparams.add(new BasicNameValuePair("siteCode", songInfo.getSiteCode()));
-		formparams.add(new BasicNameValuePair("sidCode", songInfo.getSidCode()));
-		formparams.add(new BasicNameValuePair("chainUid", "" + songInfo.getChainUid()));
-		formparams.add(new BasicNameValuePair("shopUid", "" + userInfo.getShopUid() ));
-		formparams.add(new BasicNameValuePair("channelUid", "" + songInfo.getChannelUid() ));
-		formparams.add(new BasicNameValuePair("albumUid", "" + songInfo.getAlbumUid() ));
-		formparams.add(new BasicNameValuePair("scheduleUid", "" + songInfo.getScheduleUid() ));
-		formparams.add(new BasicNameValuePair("songUid", "" + songInfo.getSongUid() ));
-		formparams.add(new BasicNameValuePair("songLid", "" + songInfo.getSongLid() ));
-		formparams.add(new BasicNameValuePair("cmYn", "" + (songInfo.getSongType().equals("CM") ? "Y" : "N" ) ));
-		
-		String songJson = setPostApiHeader(playLogUrl,formparams,userInfo.getSessionKey());
-		
-		logger.info("is play log result =" + songJson);
-		
-	}*/
 	
 	
 	public UserVO loginUser() throws Exception{
@@ -713,6 +709,11 @@ public class ShopHttpClient{
 		return userInfo;
 	}
 	
+	
+	public ArrayList<SongVO> getCurrentSong(UserVO userVO, ChannelVO songChannel) throws Exception{
+		return getCurrentSong(userVO, songChannel,-1L);
+	}
+	
 	/**
 	 * 현재곡 조회
 	 * 중복 로그인 시 강제 로그인을 진행 후 현재 재생곡 조회 진행
@@ -726,7 +727,8 @@ public class ShopHttpClient{
 		String strCurrentSongUrl = StringUtils.replace(currentSongUrl, "#channelUid#", "" + songChannel.getChannelUid());
 		strCurrentSongUrl = StringUtils.replace(strCurrentSongUrl, "#schedulesUid#", "" + songChannel.getScheduleUid());
 		strCurrentSongUrl = StringUtils.replace(strCurrentSongUrl, "#shopUid#", "" + userVO.getShopUid());		
-		strCurrentSongUrl = StringUtils.replace(strCurrentSongUrl, "#seq#", "" + seq);
+		//strCurrentSongUrl = StringUtils.replace(strCurrentSongUrl, "#seq#", "" + seq);
+		strCurrentSongUrl = StringUtils.replace(strCurrentSongUrl, "#seq#", "-1");// + seq);
 		
 		String songJson = setApiHeader(strCurrentSongUrl,userVO.getSessionKey());
 		
@@ -741,6 +743,7 @@ public class ShopHttpClient{
 		JSONObject jsonData = (JSONObject)json.get("data");
 		
 		String rtCode = (String)jsonData.get("rtCode");
+		String rtMsg = (String)jsonData.get("rtMsg");
 		
 		
 		if ( "0".equals(rtCode)){	//성공이면		
@@ -748,10 +751,10 @@ public class ShopHttpClient{
 			JSONArray jsonResult = (JSONArray)((JSONObject)jsonData.get("params")).get("song");
 			arrSongInfo = parseSong(jsonResult);
 			
-		}else if ("SG4035".equals(rtCode)){ //중복 로그인 이면
+		}else{
+			//if ("SG4035".equals(rtCode)){ //중복 로그인 이면
 			
-			
-			throw new Exception("강제 로그인으로 인한 비상용 음원 재생");
+			throw new Exception("["+rtCode +"]" + rtMsg);
 			//강제 로그인
 			/*userVO = loginUser();
 			
@@ -946,4 +949,39 @@ public class ShopHttpClient{
 		return inp;
 	}
 	
+	/**
+	 * CDN에서 media 정보 다운로드
+	 * @param songVO
+	 * @return
+	 * @throws Exception
+	 */
+	public HttpResponse getCDNMedia(SongVO songVO) throws Exception {
+	
+		HttpClient client = new DefaultHttpClient();
+		
+		Long starttime = 0L;
+		Long startByte = 0L;
+		
+		
+		
+		HttpGet httpget = new HttpGet(songVO.getStreamUrl());
+		httpget.removeHeaders("Authorization");
+		httpget.removeHeaders("X-AuthorityKey");
+		httpget.removeHeaders("User-Agent");
+		
+		if ( songVO.getPlayStartRunTime() != 0){
+			
+			if (songVO.getPlayStartRunTime() < 20){
+				startByte = 0L;
+			}else{
+				starttime = songVO.getPlayStartRunTime();
+				startByte = (starttime*128*1024)/8;
+			}
+		
+			httpget.addHeader("Range", "bytes=" + startByte + "-");		
+		}
+		
+		return client.execute(httpget);
+	
+	}
 }
