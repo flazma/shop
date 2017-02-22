@@ -333,6 +333,9 @@ public class ShopNGenieService {
 		ArrayList<SongVO> songInfoList = null;
 		ArrayList<ChannelVO> arrChannelList = null;
 		int eIdx =0;
+		//구동 시간 정리
+		String startingYmd   = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
+		String runningYmd   = "";
 		
 		try{
 			
@@ -341,9 +344,6 @@ public class ShopNGenieService {
 			
 			shopHttpClient.setShopId(shopId);
 			shopHttpClient.setShopPasswd(shopPasswd);
-			
-			//구동 시간 정리
-			String startingYmd   = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
 			
 			//1. login process
 			userAccountInfo = shopHttpClient.loginUser();			
@@ -360,6 +360,8 @@ public class ShopNGenieService {
 			
 			try{
 				
+				runningYmd   = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
+				
 				arrChannelList = shopHttpClient.getChannelList(userAccountInfo,lastChannelInfo);
 				
 				if(arrChannelList != null && arrChannelList.size() > 0){
@@ -372,6 +374,7 @@ public class ShopNGenieService {
 						songInfo = songInfoList.get(0);
 						
 						shopDownloadManager.addQueueMedia(userAccountInfo, songChannel,songInfo.getSeq());
+						//shopDownloadManager.addQueueMedia(userAccountInfo, songChannel,songInfo);
 						
 						playMusicFromBasicPlayer(songInfo);
 						

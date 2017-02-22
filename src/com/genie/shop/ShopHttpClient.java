@@ -331,9 +331,11 @@ public class ShopHttpClient{
 	 * @param songInfo
 	 * @throws Exception
 	 */
-	public void sendPlayLog(UserVO userInfo,SongVO songInfo, List<NameValuePair> formparams) throws Exception {
+	public void sendPlayLog(UserVO userInfo,SongVO songInfo) throws Exception {
 
 		logger.info("is play log songUid=" + songInfo.getSongUid() + ",title=" + songInfo.getSongTitle());
+		
+		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
 		
 		formparams.add(new BasicNameValuePair("siteCode", songInfo.getSiteCode()));
 		formparams.add(new BasicNameValuePair("sidCode", songInfo.getSidCode()));
@@ -930,6 +932,7 @@ public class ShopHttpClient{
 	 * @return
 	 */
 	public InputStream getCDNMedia(String url) {
+		
 		HttpGet httpttsGet = null;
 		HttpResponse response =null;
 		HttpEntity httpEntity =  null;

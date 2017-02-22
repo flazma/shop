@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -608,17 +609,18 @@ public class ShopDownloadManager {
 	}
 	
 	
-	
+	/*public void addQueueMedia(UserVO user, ChannelVO channelInfo, SongVO songVO) throws Exception {
+		addQueueMedia(user,channelInfo,seq,null);
+	}*/
 	
 	//@Async
-	public void addQueueMedia(UserVO user, ChannelVO channelInfo, Long seq) throws Exception {
-		//public ArrayList<MediaInfoVO> addQueueMedia(UserVO user, ChannelVO channelInfo, Long seq) throws Exception {
+	public void addQueueMedia(UserVO userVO, ChannelVO channelInfo, Long seq) throws Exception {
 		
 		ArrayList<MediaInfoVO> arrMedia = new ArrayList<MediaInfoVO>();
 		
 		String ldownloadUrl = StringUtils.replace(downloadUrl, "#channelUid#", "" + channelInfo.getChannelUid());
 		ldownloadUrl = StringUtils.replace(ldownloadUrl, "#schedulesUid#", "" + channelInfo.getScheduleUid());
-		ldownloadUrl = StringUtils.replace(ldownloadUrl, "#shopUid#", "" + user.getShopUid());
+		ldownloadUrl = StringUtils.replace(ldownloadUrl, "#shopUid#", "" + userVO.getShopUid());
 		
 		String songList = "";
 		
@@ -645,7 +647,7 @@ public class ShopDownloadManager {
 		
 		logger.info("is download start!!!"+ ldownloadUrl);
 						
-		String songJson = shopHttpClient.setApiHeader(ldownloadUrl,user.getSessionKey());
+		String songJson = shopHttpClient.setApiHeader(ldownloadUrl,userVO.getSessionKey());
 
 		logger.info("is download json :"+ songJson+":");
 		
@@ -671,13 +673,16 @@ public class ShopDownloadManager {
 				logger.info("\tdownload info=mediaInfo.getSeq()"+ mediaInfo.getSeq() +",getSongUid()"+ mediaInfo.getSongUid()+",getCdnPath()"+ mediaInfo.getCdnPath());
 									
 				File file = new File(localDownloadPath + mediaInfo.getSongUid() +"." + aodFileType);
+				
+				Long startTime = System.nanoTime();
+				
 				InputStream instream = shopHttpClient.getCDNMedia(mediaInfo.getCdnPath());
 				FileOutputStream output = new FileOutputStream(file);
 				
 				mediaInfo.setFilePath(file.getPath());
 				
 				logger.info("\t mp3 disk write="+ file.getPath());
-	
+				
 		        try {
 		            int l;
 		            byte[] tmp = new byte[2048];
@@ -689,6 +694,14 @@ public class ShopDownloadManager {
 		        	try{instream.close();}catch(Exception e){}	            
 		        }
 				
+		        Long endTime = System.nanoTime();
+		        
+		        Float totalTime = Float.valueOf(TimeUnit.NANOSECONDS.toSeconds(endTime - startTime));
+		        
+		        Long fileSize = file.length(); //byte로 반환
+		        
+		        logger.info("download time is " + totalTime +" sec, bandwidth is " + (fileSize/1024/1024)/totalTime +"Mbytes/sec");
+		        
 		        mediaInfo.setFile(file);
 				
 				arrMedia.add(mediaInfo);

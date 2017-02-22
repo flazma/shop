@@ -65,18 +65,19 @@ public class ShopAudioPlayerListener implements BasicPlayerListener{
 	    	
 	    	position = position/1000/1000;
 	    	
-	    	if ( position > 60 ){
+	    	if ( position > 5 ){
+	    	//if ( position > 60 ){
 	    		if ( IS_SEND_LOG == false){
 	    			IS_SEND_LOG = true;
 	    			logger.info("#####is play log time:" + position + ":(Long)properties.get(\"mp3.position.microseconds\"):" + (Long)properties.get("mp3.position.microseconds")+":");
 	    			
-	    			
-	    			//shopHttpClient.
-	    			//shopHttpClient.sendPlayLog(userAccountInfo,songInfo, formparams);
-	    			
 	    			UserVO userVO = sgc.getUserAccountInfo();
-	    			
-	    			//shopHttpClient.sendPlayLog(userVO,media, formparams);
+	    			try{
+	    				shopHttpClient.sendPlayLog(userVO,media);
+	    				
+	    			}catch(Exception e){
+	    				logger.info(e.toString());
+	    			}
 	    			
 	    			Iterator itr = properties.keySet().iterator();
 	    	    	while(itr.hasNext()){
@@ -98,8 +99,7 @@ public class ShopAudioPlayerListener implements BasicPlayerListener{
 	    	
 			if (event.getCode()==BasicPlayerEvent.STOPPED )
 			{
-				synchronized (sgc) {
-					//sgc.isPlayEnd = true;
+				synchronized (sgc) {					
 					sgc.notifyAll();
 				}			
 			}
