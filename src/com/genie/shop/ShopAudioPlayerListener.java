@@ -65,8 +65,8 @@ public class ShopAudioPlayerListener implements BasicPlayerListener{
 	    	
 	    	position = position/1000/1000;
 	    	
-	    	if ( position > 5 ){
-	    	//if ( position > 60 ){
+	    	//if ( position > 5 ){
+	    	if ( position > 60 ){
 	    		if ( IS_SEND_LOG == false){
 	    			IS_SEND_LOG = true;
 	    			logger.info("#####is play log time:" + position + ":(Long)properties.get(\"mp3.position.microseconds\"):" + (Long)properties.get("mp3.position.microseconds")+":");

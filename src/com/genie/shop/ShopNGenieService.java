@@ -417,6 +417,7 @@ public class ShopNGenieService {
 					continue;
 				}catch(Exception ee){
 					logger.warn(ee.toString());
+					try{Thread.sleep(1*1000);}catch(Exception eee){}	
 				}finally{
 					logger.warn("exception block finally execute");
 				}

@@ -61,6 +61,6 @@ export CLASSPATH=$CLASSPATH:./lib/shopngenie-linux-1.0.0.jar:
 
 #java -jar cvf ./src
 
-java com.genie.shop.PlayerMain b2btest qwer1010!
+java -Duser.timezone=GMT+09:00 com.genie.shop.PlayerMain b2btest qwer1010!
 
 
