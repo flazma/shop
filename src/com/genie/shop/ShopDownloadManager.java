@@ -3,6 +3,8 @@ package com.genie.shop;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.InputStream;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -13,7 +15,6 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -27,6 +28,7 @@ import com.genie.shop.vo.ChannelVO;
 import com.genie.shop.vo.MediaInfoVO;
 import com.genie.shop.vo.SongVO;
 import com.genie.shop.vo.UserVO;
+import com.google.gson.Gson;
 
 
 /**
@@ -306,10 +308,11 @@ public class ShopDownloadManager {
 	
 	public void mediaToJson(MediaInfoVO obj){
 		String destPath = emergencyDownloadPath + File.separator + obj.getSongUid() + ".json";
-		ObjectMapper mapper = new ObjectMapper();
 		
+		Gson gson = new Gson();
+
 		try{
-			mapper.writeValue(new File(destPath), obj);
+			gson.toJson(obj, new FileWriter(destPath));			
 		}catch(Exception e){
 			logger.error(e.toString());
 		}
@@ -319,10 +322,11 @@ public class ShopDownloadManager {
 	public MediaInfoVO jsonToMedia(Long songUid) throws Exception {
 		String jsonPath = emergencyDownloadPath + File.separator + songUid + ".json";
 		
-		ObjectMapper mapper = new ObjectMapper();
+		Gson gson = new Gson();
+		
 		MediaInfoVO media = null;
 		try{
-			media = mapper.readValue(new File(jsonPath), MediaInfoVO.class);
+			media = gson.fromJson(new FileReader(jsonPath), MediaInfoVO.class);
 		}catch(Exception e){
 			throw e;
 		}
@@ -732,6 +736,88 @@ public class ShopDownloadManager {
 		}
 		
 		return seq;
+	}
+	
+	
+	/**
+	 * queue get first seq
+	 * @return
+	 */
+	public Long getQueueFirstSeq(){
+		MediaInfoVO media = null;
+		Long seq = 0L;
+		Iterator itr = queue.iterator();
+		while(itr.hasNext()){
+			if(media != null){
+				media = (MediaInfoVO)itr.next();
+				break;
+			}
+		}
+		
+		if ( media != null){
+			seq = media.getSeq();
+		}
+		
+		return seq;
+	}
+	
+	
+	/**
+	 * get remain runtime 
+	 * @param currentSeq
+	 * @return
+	 */
+	public int getQueueRunningTimeGap(Long currentSeq){
+		Long queueSeq = getQueueLastSeq();
+		int runningTime = 0;
+		MediaInfoVO media = null;
+		
+		Iterator itr = queue.iterator();
+		while(itr.hasNext()){
+			media = (MediaInfoVO)itr.next();
+			if ( currentSeq <= media.getSeq()){
+				try{runningTime += Integer.parseInt(""+media.getRuntime());}catch(Exception e){}
+			}
+		}
+		
+		return runningTime;
+	}
+	
+	public synchronized void removeQueueGap(Long currentSeq){
+		
+		logger.info("remove song gap running"); 
+		
+		Iterator itr = queue.iterator();
+		while(itr.hasNext()){
+			MediaInfoVO tmp = (MediaInfoVO)itr.next();
+			logger.info("before remain queue info seq("+tmp.getSeq()+"),starttime(" + tmp.getStartTime() +"),endtime("+ tmp.getEndTime() + "),"
+					+ "songTitle("+ tmp.getSongTitle() +"),songUid("+tmp.getSongUid()+"),filePath("+tmp.filePath+"),file size=" + tmp.getFile().length()/1024/1024+"Mbytes");
+		}
+		
+		
+		
+		MediaInfoVO media = null;
+		
+		//check queue exist		
+		itr = queue.iterator();
+		while(itr.hasNext()){
+			media = (MediaInfoVO)itr.next();
+			if ( currentSeq.equals(media.getSeq()) ){
+				break;
+			}else{
+				logger.info("remove song gap is current seq(" + currentSeq +") queue seq(" + media.getSeq() + ")"); 
+				queue.remove(media);
+			}
+		}
+		
+		itr = queue.iterator();
+		while(itr.hasNext()){
+			MediaInfoVO tmp = (MediaInfoVO)itr.next();
+			logger.info("after remain queue info seq("+tmp.getSeq()+"),starttime(" + tmp.getStartTime() +"),endtime("+ tmp.getEndTime() + "),"
+					+ "songTitle("+ tmp.getSongTitle() +"),songUid("+tmp.getSongUid()+"),filePath("+tmp.filePath+"),file size=" + tmp.getFile().length()/1024/1024+"Mbytes");
+		}
+		
+		logger.info("remove song gap end"); 
 	}
 	
 	public static Logger getLogger() {

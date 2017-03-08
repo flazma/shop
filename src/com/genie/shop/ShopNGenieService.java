@@ -125,7 +125,8 @@ public class ShopNGenieService {
 	public String localLogPath = "";
 	
 	
-	
+	@Value("#{config['remove.song.gap']}")
+	public String removeSongGap = "";
 	
 	/**
 	 * 
@@ -372,6 +373,10 @@ public class ShopNGenieService {
 					//증복 로그인 시 size = 0  리턴
 					if (  songInfoList != null && songInfoList.size() != 0 ){
 						songInfo = songInfoList.get(0);
+						
+						if( removeSongGap.equals("true")){
+							shopDownloadManager.removeQueueGap(songInfo.getSeq());
+						}
 						
 						shopDownloadManager.addQueueMedia(userAccountInfo, songChannel,songInfo.getSeq());
 						//shopDownloadManager.addQueueMedia(userAccountInfo, songChannel,songInfo);
@@ -676,6 +681,8 @@ public class ShopNGenieService {
 				media = shopDownloadManager.poll();
 				logger.info("is queue poll seq(" + media.getSeq()+")");
 				//InputStream stream = new FileInputStream(media.getFile());
+				logger.info("seq gap is " + songVO.getSeq() + " - " + songVO.getSeq() + " = " +  (songVO.getSeq() - songVO.getSeq()) );
+				logger.info("seq gap time is " + shopDownloadManager.getQueueRunningTimeGap(songVO.getSeq()) );
 				
 				player = new BasicPlayer();
 				control = (BasicController)player;
