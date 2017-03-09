@@ -150,7 +150,7 @@ public class ShopNGenieService {
 			c.run();
 			logger.info("is service expired");
 		}catch(Exception e){
-			logger.warn(e.toString());
+			logger.warn("main Exception",e);
 		}
 	}
 	
@@ -185,7 +185,7 @@ public class ShopNGenieService {
 			}
 			
 		}catch(Exception e){
-			logger.warn(e.toString());
+			logger.warn("",e);
 		}
 		
 	}
@@ -237,7 +237,7 @@ public class ShopNGenieService {
 					media.setFile(cacheFile);
 					shopDownloadManager.emeAodPool.add(media);
 				}catch(Exception e){
-					logger.warn(e.toString());
+					logger.warn("",e);
 				}
 			}
 		}
@@ -352,8 +352,8 @@ public class ShopNGenieService {
 			lastChannelInfo = shopHttpClient.getChannelInfo(shopId);			
 			//3. app login update information 
 			appInfo = shopHttpClient.getAppInfo(userAccountInfo);
-		}catch(Exception e){
-			logger.warn(e.toString());
+		}catch(Exception e){			
+			logger.error("Exception is:",e);			
 		}
 		
 		
@@ -374,7 +374,7 @@ public class ShopNGenieService {
 					if (  songInfoList != null && songInfoList.size() != 0 ){
 						songInfo = songInfoList.get(0);
 						
-						if( removeSongGap.equals("true")){
+						if( "true".equals(removeSongGap)){
 							shopDownloadManager.removeQueueGap(songInfo.getSeq());
 						}
 						
@@ -400,8 +400,8 @@ public class ShopNGenieService {
 					}
 					
 				}
-			}catch(Exception e){
-				logger.warn(e.toString());
+			}catch(Exception e){				
+				logger.error("Exception is:",e);
 				
 				try{
 					playEmergencyMusic(eIdx);
@@ -421,10 +421,10 @@ public class ShopNGenieService {
 					
 					continue;
 				}catch(Exception ee){
-					logger.warn(ee.toString());
+					logger.error("",ee);
 					try{Thread.sleep(1*1000);}catch(Exception eee){}	
 				}finally{
-					logger.warn("exception block finally execute");
+					logger.info("exception block finally execute");
 				}
 			}
 		}
@@ -688,6 +688,7 @@ public class ShopNGenieService {
 				control = (BasicController)player;
 				control.open(media.getFile());
 				apl.setMedia(media);
+				apl.setFirst();
 
 			}else{
 				response = shopHttpClient.getCDNMedia(songVO);

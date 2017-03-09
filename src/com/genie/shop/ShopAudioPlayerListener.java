@@ -33,6 +33,9 @@ public class ShopAudioPlayerListener implements BasicPlayerListener{
 	
 	public boolean IS_SEND_LOG = false;
 	
+	public void setFirst(){
+		IS_SEND_LOG = false;
+	}
 	
 	public MediaInfoVO getMedia() {
 		return media;
@@ -76,7 +79,7 @@ public class ShopAudioPlayerListener implements BasicPlayerListener{
 	    				shopHttpClient.sendPlayLog(userVO,media);
 	    				
 	    			}catch(Exception e){
-	    				logger.info(e.toString());
+	    				logger.info("",e);
 	    			}
 	    			
 	    			Iterator itr = properties.keySet().iterator();

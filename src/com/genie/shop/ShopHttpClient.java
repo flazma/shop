@@ -152,16 +152,6 @@ public class ShopHttpClient{
 		this.client = client;
 	}
 	
-
-	public static void main(String[] args) throws Exception {
-		
-		if (args.length <2){
-			System.out.println("required shopId , shopPassword!!");
-			System.exit(0);
-		}
-		
-	}
-	
 	
 	public String getHttpGetResponse(String url) throws Exception  {
 		return getHttpGetResponse(url,null);
@@ -921,7 +911,7 @@ public class ShopHttpClient{
 			player = new Player(httpEntity.getContent());
 			player.play();
 		}catch(Exception e){
-			logger.warn(e.toString());
+			logger.warn("TTS Exception ",e);
 		}
 	}
 	
@@ -946,7 +936,7 @@ public class ShopHttpClient{
 			inp =  httpEntity.getContent();
 			
 		}catch(Exception e){
-			logger.warn(e.toString());
+			logger.warn("",e);
 		}
 		
 		return inp;

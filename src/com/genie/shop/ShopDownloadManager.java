@@ -3,9 +3,11 @@ package com.genie.shop;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ import com.genie.shop.vo.MediaInfoVO;
 import com.genie.shop.vo.SongVO;
 import com.genie.shop.vo.UserVO;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 
 /**
@@ -188,7 +191,7 @@ public class ShopDownloadManager {
 		while(itr.hasNext()){
 			MediaInfoVO tmp = (MediaInfoVO)itr.next();
 			logger.info("remain queue info seq("+tmp.getSeq()+"),starttime(" + tmp.getStartTime() +"),endtime("+ tmp.getEndTime() + "),"
-					+ "songTitle("+ tmp.getSongTitle() +"),songUid("+tmp.getSongUid()+"),filePath("+tmp.filePath+"),file size=" + tmp.getFile().length()/1024/1024+"Mbytes");
+					+ "songTitle("+ tmp.getSongTitle() +"),songUid("+tmp.getSongUid()+"),filePath("+tmp.getFilePath()+"),file size=" + tmp.getFile().length()/1024/1024+"Mbytes");
 		}
 		
 		return mediaInfo;
@@ -284,7 +287,7 @@ public class ShopDownloadManager {
             //in.transferTo(0, in.size(), out);
              
         }catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("",e);
         } finally {
             if(out != null) try{out.close();}catch(Exception e){}
             if(in != null) try{in.close();}catch(Exception e){}
@@ -305,28 +308,44 @@ public class ShopDownloadManager {
 		}
 	}
 	
-	
-	public void mediaToJson(MediaInfoVO obj){
+	/**
+	 * media object convert to json file
+	 * @param obj
+	 */
+	public void mediaToJson(MediaInfoVO obj) {
 		String destPath = emergencyDownloadPath + File.separator + obj.getSongUid() + ".json";
 		
-		Gson gson = new Gson();
-
+		Gson gson = new GsonBuilder().create();
+		Writer writer = null;
+		
 		try{
-			gson.toJson(obj, new FileWriter(destPath));			
+			logger.info("media object to json:" + destPath);
+			writer = new OutputStreamWriter(new FileOutputStream(destPath), "UTF-8");
+			gson.toJson(obj, writer);
+			writer.close();
 		}catch(Exception e){
-			logger.error(e.toString());
+			logger.error("",e);
 		}
 		
 	}
 	
+	/**
+	 * json file to read covert mediainfo vo object
+	 * @param songUid
+	 * @return
+	 * @throws Exception
+	 */
 	public MediaInfoVO jsonToMedia(Long songUid) throws Exception {
 		String jsonPath = emergencyDownloadPath + File.separator + songUid + ".json";
 		
-		Gson gson = new Gson();
-		
+		Gson gson = new GsonBuilder().create();
+		Reader reader = null;
 		MediaInfoVO media = null;
 		try{
-			media = gson.fromJson(new FileReader(jsonPath), MediaInfoVO.class);
+			logger.info("jsong to media object:"+ jsonPath);
+			reader = new InputStreamReader(new FileInputStream(jsonPath), "UTF-8");
+			media = gson.fromJson(reader, MediaInfoVO.class);
+			reader.close();
 		}catch(Exception e){
 			throw e;
 		}
@@ -363,7 +382,7 @@ public class ShopDownloadManager {
 		while(itr.hasNext()){
 			MediaInfoVO tmp = (MediaInfoVO)itr.next();
 			logger.info("remain queue info seq("+tmp.getSeq()+"),starttime(" + tmp.getStartTime() +"),endtime("+ tmp.getEndTime() + "),songTitle("+ tmp.getSongTitle() +
-					"),songUid("+tmp.getSongUid()+"),filePath("+tmp.filePath+"),file size=" + tmp.getFile().length()/1024/1024+"Mbytes");	
+					"),songUid("+tmp.getSongUid()+"),filePath("+tmp.getFilePath()+"),file size=" + tmp.getFile().length()/1024/1024+"Mbytes");	
 		}
 		
 		return mediaInfo;
@@ -783,25 +802,25 @@ public class ShopDownloadManager {
 		return runningTime;
 	}
 	
-	public synchronized void removeQueueGap(Long currentSeq){
+	public void removeQueueGap(Long currentSeq){
 		
-		logger.info("remove song gap running"); 
-		
-		Iterator itr = queue.iterator();
-		while(itr.hasNext()){
-			MediaInfoVO tmp = (MediaInfoVO)itr.next();
-			logger.info("before remain queue info seq("+tmp.getSeq()+"),starttime(" + tmp.getStartTime() +"),endtime("+ tmp.getEndTime() + "),"
-					+ "songTitle("+ tmp.getSongTitle() +"),songUid("+tmp.getSongUid()+"),filePath("+tmp.filePath+"),file size=" + tmp.getFile().length()/1024/1024+"Mbytes");
-		}
-		
+		logger.info("remove song gap running size(" + queue.size() +")" ); 
 		
 		
 		MediaInfoVO media = null;
 		
 		//check queue exist		
-		itr = queue.iterator();
+		Iterator<MediaInfoVO> itr = queue.iterator();
+		
 		while(itr.hasNext()){
-			media = (MediaInfoVO)itr.next();
+			
+			try{
+				media = itr.next();
+			}catch(Exception e){				
+				itr = queue.iterator();
+				continue;
+			}
+			
 			if ( currentSeq.equals(media.getSeq()) ){
 				break;
 			}else{
@@ -810,14 +829,7 @@ public class ShopDownloadManager {
 			}
 		}
 		
-		itr = queue.iterator();
-		while(itr.hasNext()){
-			MediaInfoVO tmp = (MediaInfoVO)itr.next();
-			logger.info("after remain queue info seq("+tmp.getSeq()+"),starttime(" + tmp.getStartTime() +"),endtime("+ tmp.getEndTime() + "),"
-					+ "songTitle("+ tmp.getSongTitle() +"),songUid("+tmp.getSongUid()+"),filePath("+tmp.filePath+"),file size=" + tmp.getFile().length()/1024/1024+"Mbytes");
-		}
-		
-		logger.info("remove song gap end"); 
+		logger.info("remove song gap end size(" + queue.size() +")"); 
 	}
 	
 	public static Logger getLogger() {
@@ -830,6 +842,7 @@ public class ShopDownloadManager {
 
 	public String getDownloadUrl() {
 		return downloadUrl;
+		
 	}
 
 	public void setDownloadUrl(String downloadUrl) {

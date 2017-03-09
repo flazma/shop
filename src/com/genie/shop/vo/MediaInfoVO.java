@@ -6,9 +6,6 @@ import java.io.Serializable;
 public class MediaInfoVO extends SongVO {
 	public File file = null;
 	
-	
-	public String filePath ="";
-	
 	public String cdnPath = "";
 	
 	public String getCdnPath() {
@@ -18,14 +15,7 @@ public class MediaInfoVO extends SongVO {
 	public void setCdnPath(String cdnPath) {
 		this.cdnPath = cdnPath;
 	}
-
-	public String getFilePath() {
-		return filePath;
-	}
-
-	public void setFilePath(String filePath) {
-		this.filePath = filePath;
-	}
+	
 	
 	public File getFile() {
 		return file;
