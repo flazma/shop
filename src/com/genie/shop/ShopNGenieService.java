@@ -684,6 +684,47 @@ public class ShopNGenieService {
 				logger.info("seq gap is " + songVO.getSeq() + " - " + songVO.getSeq() + " = " +  (songVO.getSeq() - songVO.getSeq()) );
 				logger.info("seq gap time is " + shopDownloadManager.getQueueRunningTimeGap(songVO.getSeq()) );
 				
+				
+				if ( songVO.getSeq().equals(media.getSeq())){
+					media.setAlbumUid(songVO.getAlbumUid());
+					media.setAppointUnit(songVO.getAppointUnit());
+					media.setArtistName(songVO.getArtistName());
+					media.setCexpDates(songVO.getCexpDates());
+					media.setChainUid(songVO.getChainUid());
+					media.setChannelUid(songVO.getChannelUid());
+					media.setCoverImg(songVO.getCoverImg());
+					media.setCoverImgBig(songVO.getCoverImgBig());
+					media.setCoverImgMid(songVO.getCoverImgMid());
+					media.setCurrentTime(songVO.getCurrentTime());
+					media.setCutTime(songVO.getCutTime());
+					media.setCutYn(songVO.getCutYn());
+					media.setEndRunTime(songVO.getEndRunTime());
+					media.setEndTime(songVO.getEndTime());
+					//media.setFile(songVO.getFile());
+					media.setFilePath(songVO.getFilePath());
+					media.setFilePathNortest(songVO.getFilePathNortest());
+					media.setIsActive(songVO.getIsActive());
+					media.setPayAlertType(songVO.getPayAlertType());
+					media.setPlayListUid(songVO.getPlayListUid());
+					media.setPlayStartRunTime(songVO.getPlayStartRunTime());
+					media.setPriority(songVO.getPriority());
+					media.setRuntime(songVO.getRuntime());
+					media.setScheduleType(songVO.getScheduleType());
+					media.setScheduleUid(songVO.getScheduleUid());
+					media.setSidCode(songVO.getSidCode());
+					media.setSiteCode(songVO.getSiteCode());
+					media.setSongLid(songVO.getSongLid());
+					media.setSongTitle(songVO.getSongTitle());
+					media.setSongType(songVO.getSongType());
+					media.setSongUid(songVO.getSongUid());
+					media.setStartRunTime(songVO.getStartRunTime());
+					media.setStartTime(songVO.getStartTime());
+					media.setStreamUrl(songVO.getStreamUrl());
+					media.setUnder19Yn(songVO.getUnder19Yn());
+					media.setVersion(songVO.getVersion());
+					
+				}
+				
 				player = new BasicPlayer();
 				control = (BasicController)player;
 				control.open(media.getFile());

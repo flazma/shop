@@ -341,8 +341,7 @@ public class ShopDownloadManager {
 		Gson gson = new GsonBuilder().create();
 		Reader reader = null;
 		MediaInfoVO media = null;
-		try{
-			logger.info("jsong to media object:"+ jsonPath);
+		try{			
 			reader = new InputStreamReader(new FileInputStream(jsonPath), "UTF-8");
 			media = gson.fromJson(reader, MediaInfoVO.class);
 			reader.close();
