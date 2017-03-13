@@ -285,6 +285,14 @@
 			<artifactId>httpmime</artifactId>
 			<version>4.2.2</version>
 		</dependency>	
+		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpasyncclient -->
+		<dependency>
+		    <groupId>org.apache.httpcomponents</groupId>
+		    <artifactId>httpasyncclient</artifactId>
+		    <version>4.1</version>
+		</dependency>
+		
+		
 		<!-- <dependency>
 		    <groupId>dwr</groupId>
 		    <artifactId>dwr</artifactId>

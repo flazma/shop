@@ -58,6 +58,9 @@ public class ShopNGenieService {
 
 	AppInfoVO appInfo = null;
 	
+	@Value("#{config['send.play.log']}")
+	private String sendPlayLog ="";
+	
 	@Value("#{config['basic.id']}")
 	private String basicId ="";
 	
@@ -374,8 +377,10 @@ public class ShopNGenieService {
 					if (  songInfoList != null && songInfoList.size() != 0 ){
 						songInfo = songInfoList.get(0);
 						
+						Long removeGap = 0L; 
+						
 						if( "true".equals(removeSongGap)){
-							shopDownloadManager.removeQueueGap(songInfo.getSeq());
+							removeGap = shopDownloadManager.removeQueueGap(songInfo.getSeq());
 						}
 						
 						shopDownloadManager.addQueueMedia(userAccountInfo, songChannel,songInfo.getSeq());
@@ -399,6 +404,10 @@ public class ShopNGenieService {
 						continue;
 					}
 					
+					
+					if ( "true".equals(sendPlayLog)){
+						shopHttpClient.allSendPlayLog(userAccountInfo);
+					}					
 				}
 			}catch(Exception e){				
 				logger.error("Exception is:",e);
@@ -464,196 +473,6 @@ public class ShopNGenieService {
 	}
 	
 	
-	/**
-	 * song play
-	 * 
-	 * @param songInfo
-	 */
-	public void playMusic(SongVO songInfo){
-		
-		HttpClient client = new DefaultHttpClient();
-		
-		Long starttime = 0L;
-		Long startByte = 0L;
-		
-		
-		
-		HttpGet httpget = new HttpGet(songInfo.getStreamUrl());
-		httpget.removeHeaders("Authorization");
-		httpget.removeHeaders("X-AuthorityKey");
-		
-		if ( songInfo.getPlayStartRunTime() != 0){
-			
-			if (songInfo.getPlayStartRunTime() < 20){
-				startByte = 0L;
-			}else{
-				starttime = songInfo.getPlayStartRunTime();
-				startByte = (starttime*128*1024)/8;
-			}
-		
-			httpget.addHeader("Range", "bytes=" + startByte + "-");		
-		}
-
-		HttpResponse response =null;
-		ShopNGenieAudioPlayer player = null;
-	
-		//Player player = null;
-		MediaInfoVO media = null;
-		try{
-			
-			
-			logger.info("download queue size=" + shopDownloadManager.queue.size());
-
-			//queue 사이즈가 0보다 크면, 해당 queue의 제일 첫 음원을 재생한다.
-			if ( shopDownloadManager.queue.size() > 0 ){
-				
-				media = shopDownloadManager.poll();
-				logger.info("is queue poll seq(" + media.getSeq()+")");
-				InputStream stream = new FileInputStream(media.getFile());
-				
-				//player = new BasicPlayer(stream);
-				player = new ShopNGenieAudioPlayer(stream);
-				
-			}else{
-				response = client.execute(httpget);		
-				int statusCode = response.getStatusLine().getStatusCode();			
-				
-				HttpEntity httpEntity = response.getEntity();			
-		        
-				logger.info("is http progressive streaming!!");
-				//player = new ShopNGenieAudioPlayer(httpEntity.getContent());
-				player = new ShopNGenieAudioPlayer(httpEntity.getContent());
-				
-			}
-			
-			player.play();
-			
-			if ( media != null){
-				media.file.delete();
-			}
-			
-						
-       }catch (JavaLayerException je) {
-    	   //Cannot create AudioDevice 
-    	   //logger.warn(je.toString());
-    	   logger.info(je.toString(), je);
-    	   //logger.warn(je);
-       }
-		catch (Exception e) {
-			logger.info(e.toString(), e);
-			//logger.warn(e.toString());
-       }
-	          
-	}
-	
-
-	/**
-	 * basicPlayer의 경우 Thread base로 thread notify와 sleep등의 thread handling이 필요
-	 * basicPlayer의 경우 status에 따른 상세 조절 가능
-	 * @param songInfo
-	 */
-	public void playNewMusic(SongVO songInfo){
-	
-	HttpClient client = new DefaultHttpClient();
-	
-	Long starttime = 0L;
-	Long startByte = 0L;
-	
-	
-	
-	HttpGet httpget = new HttpGet(songInfo.getStreamUrl());
-	httpget.removeHeaders("Authorization");
-	httpget.removeHeaders("X-AuthorityKey");
-	
-	if ( songInfo.getPlayStartRunTime() != 0){
-		
-		if (songInfo.getPlayStartRunTime() < 20){
-			startByte = 0L;
-		}else{
-			starttime = songInfo.getPlayStartRunTime();
-			startByte = (starttime*128*1024)/8;
-		}
-	
-		httpget.addHeader("Range", "bytes=" + startByte + "-");		
-	}
-
-	HttpResponse response =null;
-	BasicPlayer player = null;
-	
-	BasicController control = null; 
-	
-	
-	//Player player = null;
-	MediaInfoVO media = null;
-	try{
-		
-		
-	logger.info("download queue size=" + shopDownloadManager.queue.size());
-		//queue 사이즈가 0보다 크면...
-		if ( shopDownloadManager.queue.size() > 0 ){
-			
-			media = shopDownloadManager.poll();
-			logger.info("is queue poll seq(" + media.getSeq()+")");
-			InputStream stream = new FileInputStream(media.getFile());
-			
-			//player = new BasicPlayer(stream);
-			player = new BasicPlayer();
-			control = (BasicController) player;
-			control.open(stream);
-		}else{
-			response = client.execute(httpget);		
-			int statusCode = response.getStatusLine().getStatusCode();			
-			
-			HttpEntity httpEntity = response.getEntity();			
-	        
-			
-			logger.info("is http progressive streaming!!");
-			//player = new ShopNGenieAudioPlayer(httpEntity.getContent());
-			player = new BasicPlayer();
-			control = (BasicController) player;
-			control.open(httpEntity.getContent());
-		}
-			
-		//player = new BasicPlayer();
-		//player.open(httpEntity.getContent());
-		//logger.info("\nplayer position:"+ String.format("%,d", Integer.parseInt(""+startByte)) + " bytes");
-		//player.seek(startByte);
-		
-		ShopAudioPlayerListener apl = new ShopAudioPlayerListener();
-		apl.setController(control);
-		
-		player.addBasicPlayerListener(apl);
-		
-		logger.info("is playing!!");
-		
-		control.play();
-		
-		control.setGain(0.85);
-		
-		// Set Pan (-1.0 to 1.0).
-		// setPan should be called after control.play().
-		control.setPan(0.0);
-		
-		if ( media != null){
-			media.file.delete();
-		}
-		
-		while(true){
-			
-		}
-		
-   }/*catch (JavaLayerException je) {
-	   //Cannot create AudioDevice 
-	   //logger.warn(je.toString());
-	   logger.info(je.toString(), je);
-	   //logger.warn(je);
-   }*/
-	catch (Exception e) {
-		logger.info(e.toString(), e);
-		//logger.warn(e.toString());
-   }
-          
-	}
 	
 	/**
 	 * song play
@@ -765,7 +584,8 @@ public class ShopNGenieService {
 				String filePath = file.getPath();
 				shopDownloadManager.addEQueue(media);
 				file.delete();
-    	   }    	   
+				shopHttpClient.addPlayLog(media);
+    	   }
        }
 	          
 	}
@@ -774,7 +594,7 @@ public class ShopNGenieService {
 	
 	
 	/**
-	 * ��Ʈ���� ���� üũ
+	 * streaming check
 	 */
 	public void checkStreaming(){}
 	
@@ -1144,239 +964,6 @@ public class ShopNGenieService {
 		this.player = player;
 	}
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
-	
-	/**
-	 * 구동시작 일자와 구동일자를 체크 한다.
-	 * 구동일자 시작 시 그날의 전체 스케쥴 표를 조회 한다.
-	 * 스케쥴표에 시간에 맞는 음원만 놓고 스케쥴 표중 지난 시간의 재생 리스트는 제거 한다.
-	 * 
-	 * @throws Exception
-	 */
-	public void runNew() throws Exception {
-		
-		shopHttpClient.setShopId(shopId);
-		shopHttpClient.setShopPasswd(shopPasswd);
-		
-		//구동 시간 정리
-		String startingYmd   = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
-		
-		//1. app 로그인
-		userAccountInfo = shopHttpClient.loginUser();
-		
-		//채널정보
-		ChannelVO lastChannelInfo = shopHttpClient.getChannelInfo(shopId);
-		
-		//app 로그인 후 업데이트 정보 
-		appInfo = shopHttpClient.getAppInfo(userAccountInfo);
-		Long seq = -1L;
-		
-		boolean isFirst = true;
-		
-		SongVO songInfo = null;
-		ArrayList<SongVO> daySongInfoList = null;
-		ChannelVO songChannel = null;
-		
-		//네트워크 offline 및 장애처리 로직 없음		
-		ArrayList<ChannelVO> arrChannelList = shopHttpClient.getChannelList(userAccountInfo,lastChannelInfo);
-		ArrayList<SongVO> songInfoList = null;
-		
-		if(arrChannelList != null && arrChannelList.size() > 0){
-		
-			songChannel = arrChannelList.get(0);				
-			//		
-			songInfoList = shopHttpClient.getCurrentSong(userAccountInfo, songChannel);
-		}
-		
-		
-		while(true){
-			
-			String runningYmd   = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
-			//구동일자와 동일한 날짜이면 스케쥴 정보를 조회하지 않는다.
-			//만약 구동일자와 다른 날짜이면 스케쥴 정보를 조회 한다.			
-			if (startingYmd.equals(runningYmd) ){//구동일자가 같으면
-				
-				if(arrChannelList != null && arrChannelList.size() > 0){
-				
-					songChannel = arrChannelList.get(0);
-					songInfoList = shopHttpClient.getCurrentSong(userAccountInfo, songChannel);				
-					
-					if ( daySongInfoList == null){
-						logger.info("is day schedules getting");
-						
-						if(isFirst == true){
-							//하루의 스케쥴 전체 조회
-							daySongInfoList = shopHttpClient.getDaySchedules(songChannel.getChannelUid(), songChannel.getScheduleUid(), songChannel.getChainUid(), userAccountInfo.getSessionKey());
-							isFirst = false;
-						}
-						
-						int j = daySongInfoList.size();
-						String inTime   = new java.text.SimpleDateFormat("HHmmss").format(new java.util.Date());
-						
-						//하루가 다 지나갔다는 의미이며, 23시50분 이상이라는 얘기
-						if ( daySongInfoList.size() == 0){
-							
-						}else{
-						
-							for (int i=0; i <j ; ){
-								SongVO songTmp = (SongVO)daySongInfoList.get(i);				
-								Long startTime = Long.parseLong(songTmp.getStartTime());
-								Long endTime = Long.parseLong(songTmp.getEndTime());
-								
-								Long currentTime = Long.parseLong(inTime);
-								
-								if ( currentTime > endTime ){							
-									daySongInfoList.remove(songTmp);
-									j--;							
-								}else{
-									i++;
-								}
-							}	
-						}
-					}
-				}	
-	
-			}else{
-				startingYmd = runningYmd;
-				isFirst = true;
-				arrChannelList = shopHttpClient.getChannelList(userAccountInfo,lastChannelInfo);
-				if(arrChannelList != null && arrChannelList.size() > 0){
-				
-					songChannel = arrChannelList.get(0);				
-					//		
-					songInfoList = shopHttpClient.getCurrentSong(userAccountInfo, songChannel);
-				}
-			}
-			
-			//증복 로그인 시 size = 0  리턴
-			if ( songInfoList.size() != 0 ){
-				songInfo = songInfoList.get(0);
-				
-				shopDownloadManager.addMedia(userAccountInfo, songChannel,songInfo.getSeq(), daySongInfoList );
-				
-				//shopDownloadManager.addQueueMedia(userAccountInfo, songChannel,songInfo.getSeq());
-				
-				//shopDownloadManager.asynchDown(userAccountInfo, songChannel,songInfo.getSeq());
-				
-				
-				//shopHttpClient.playTTS(player,songInfo.getArtistName(),songInfo.getSongTitle());
-				
-				playMusic(songInfo);
-				
-				//shopHttpClient.sendPlayLog(userAccountInfo,songInfo, formparams);
-				
-				//shopHttpClient.sendPlayLog(userInfoLogin,songInfo);
-				
-				seq = songInfo.getSeq();
-			}else{
-				Thread.sleep(10 * 1000);
-			}
-			
-			Thread.sleep(1000);
-				
-			}
-		}
-	
-	/**
-	 * song play
-	 * 
-	 * @param songInfo
-	 */
-	public void playMusicNew(SongVO songInfo){
-		
-		HttpClient client = new DefaultHttpClient();
-		
-		Long starttime = 0L;
-		Long startByte = 0L;
-		
-		
-		
-		HttpGet httpget = new HttpGet(songInfo.getStreamUrl());
-		httpget.removeHeaders("Authorization");
-		httpget.removeHeaders("X-AuthorityKey");
-		
-		if ( songInfo.getPlayStartRunTime() != 0){
-			
-			if (songInfo.getPlayStartRunTime() < 20){
-				startByte = 0L;
-			}else{
-				starttime = songInfo.getPlayStartRunTime();
-				startByte = (starttime*128*1024)/8;
-			}
-		
-			httpget.addHeader("Range", "bytes=" + startByte + "-");		
-		}
-
-		HttpResponse response =null;
-		ShopNGenieAudioPlayer player = null;
-	
-		//Player player = null;
-		MediaInfoVO media = null;
-		try{
-			
-			
-		logger.info("download queue size=" + shopDownloadManager.queue.size());
-			//queue 사이즈가 0보다 크면...
-			if ( shopDownloadManager.queue.size() > 0 ){
-				
-				media = shopDownloadManager.poll();
-				logger.info("is queue poll seq(" + media.getSeq()+")");
-				InputStream stream = new FileInputStream(media.getFile());
-				
-				//player = new BasicPlayer(stream);
-				player = new ShopNGenieAudioPlayer(stream);
-				
-			}else{
-				response = client.execute(httpget);		
-				int statusCode = response.getStatusLine().getStatusCode();			
-				
-				HttpEntity httpEntity = response.getEntity();			
-		        
-				logger.info("is http progressive streaming!!");
-				//player = new ShopNGenieAudioPlayer(httpEntity.getContent());
-				player = new ShopNGenieAudioPlayer(httpEntity.getContent());
-				
-			}
-			
-			player.play();
-			
-			if ( media != null){
-				media.file.delete();
-			}
-			
-						
-       }catch (JavaLayerException je) {
-    	   //Cannot create AudioDevice 
-    	   //logger.warn(je.toString());
-    	   logger.info(je.toString(), je);
-    	   //logger.warn(je);
-       }
-		catch (Exception e) {
-			logger.info(e.toString(), e);
-			//logger.warn(e.toString());
-       }
-	          
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 }

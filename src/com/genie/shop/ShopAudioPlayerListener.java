@@ -6,6 +6,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.genie.shop.vo.MediaInfoVO;
@@ -68,28 +69,19 @@ public class ShopAudioPlayerListener implements BasicPlayerListener{
 	    	
 	    	position = position/1000/1000;
 	    	
-	    	//if ( position > 5 ){
-	    	if ( position > 60 ){
-	    		if ( IS_SEND_LOG == false){
-	    			IS_SEND_LOG = true;
-	    			logger.info("#####is play log time:" + position + ":(Long)properties.get(\"mp3.position.microseconds\"):" + (Long)properties.get("mp3.position.microseconds")+":");
-	    			
-	    			UserVO userVO = sgc.getUserAccountInfo();
-	    			try{
-	    				shopHttpClient.sendPlayLog(userVO,media);
-	    				
-	    			}catch(Exception e){
-	    				logger.info("",e);
-	    			}
-	    			
-	    			Iterator itr = properties.keySet().iterator();
-	    	    	while(itr.hasNext()){
-	    	    		String key = (String)itr.next();
-	    	    		logger.info("progress:is:key="+key+",value="+properties.get(key));
-	    	    	}
-	    			
-	    		}
-	    	}	    	
+			/*if ( position > 60 ){
+				if ( IS_SEND_LOG == false){
+					IS_SEND_LOG = true;
+					logger.info("#####is play log time:" + position + ":(Long)properties.get(\"mp3.position.microseconds\"):" + (Long)properties.get("mp3.position.microseconds")+":");
+			
+			Iterator itr = properties.keySet().iterator();
+			while(itr.hasNext()){
+				String key = (String)itr.next();
+				logger.info("progress:is:key="+key+",value="+properties.get(key));
+			    	}
+					
+				}
+			}	    	*/
 	    }
 
 	    /**

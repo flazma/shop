@@ -222,6 +222,8 @@ public class ShopDownloadManager {
 				
 					jsonFile.delete();					
 					tMedia.file.delete();
+					
+					logger.info("###emergency queue gap delete seq(" + tMedia.getSeq() +") ####");
 					emeAodPool.remove(tMedia);
 					
 				}				
@@ -801,34 +803,67 @@ public class ShopDownloadManager {
 		return runningTime;
 	}
 	
-	public void removeQueueGap(Long currentSeq){
-		
-		logger.info("remove song gap running size(" + queue.size() +")" ); 
-		
+	
+	public synchronized void cleanQueue(){
 		
 		MediaInfoVO media = null;
-		
-		//check queue exist		
 		Iterator<MediaInfoVO> itr = queue.iterator();
 		
 		while(itr.hasNext()){
 			
 			try{
 				media = itr.next();
+				File file = media.getFile();
+				file.delete();
+				queue.remove(media);
 			}catch(Exception e){				
 				itr = queue.iterator();
 				continue;
 			}
-			
-			if ( currentSeq.equals(media.getSeq()) ){
-				break;
-			}else{
-				logger.info("remove song gap is current seq(" + currentSeq +") queue seq(" + media.getSeq() + ")"); 
-				queue.remove(media);
-			}
 		}
+				
+	}
+	
 		
-		logger.info("remove song gap end size(" + queue.size() +")"); 
+
+	public Long removeQueueGap(Long currentSeq){
+		
+		Long last = getQueueLastSeq();
+		Long gap = last - currentSeq;
+		Long cnt = 0L;
+		if ( gap > MAX_SIZE){
+			logger.info("clean song queue gap(" + gap +") ,current seq("+ currentSeq +") last seq("+ last +")" ); 
+			cleanQueue();			
+			return null;
+		}else{
+		
+			logger.info("remove song gap running size(" + queue.size() +")" ); 
+			MediaInfoVO media = null;
+			
+			//check queue exist		
+			Iterator<MediaInfoVO> itr = queue.iterator();
+			
+			while(itr.hasNext()){
+				
+				try{
+					media = itr.next();
+				}catch(Exception e){				
+					itr = queue.iterator();
+					continue;
+				}
+				
+				if ( currentSeq.equals(media.getSeq()) ){
+					break;
+				}else{
+					logger.info("remove song gap is current seq(" + currentSeq +") queue seq(" + media.getSeq() + ")"); 
+					queue.remove(media);
+					cnt++;
+				}
+			}
+			
+			logger.info("remove song gap end size(" + queue.size() +")"); 
+		}
+		return cnt;
 	}
 	
 	public static Logger getLogger() {

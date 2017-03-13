@@ -11,11 +11,11 @@ import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -28,10 +28,12 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.genie.shop.vo.AppInfoVO;
 import com.genie.shop.vo.ChannelVO;
+import com.genie.shop.vo.MediaInfoVO;
 import com.genie.shop.vo.ProductVO;
 import com.genie.shop.vo.SongVO;
 import com.genie.shop.vo.UserVO;
@@ -47,6 +49,9 @@ public class ShopHttpClient{
 	static Logger logger = LoggerFactory.getLogger(ShopHttpClient.class);
 	
 	HttpClient client = new DefaultHttpClient();
+
+
+	public ArrayList<MediaInfoVO> playLogQueue = new ArrayList<MediaInfoVO>();
 	
 	public String sessionKey = "";
 	
@@ -99,6 +104,27 @@ public class ShopHttpClient{
 	public String shopId;
 	public String shopPasswd;
 	
+	
+	public boolean addPlayLog(MediaInfoVO media){
+		return playLogQueue.add(media);
+	}
+	
+	
+	public void allSendPlayLog(UserVO user){
+		logger.info("!!allSendPlayLog!!");
+		int j = playLogQueue.size();
+		for(int i = 0; i < j ; i++){
+			try{
+				MediaInfoVO media = playLogQueue.get(i);
+				sendPlayLog(user,media);
+				playLogQueue.remove(media);
+			}catch(Exception e){
+				logger.warn("sendPlayLog Exception:",e);
+				i =0; j = playLogQueue.size();
+			}
+		}
+		
+	}
 	
 	public String getShopId() {
 		return shopId;
@@ -170,6 +196,14 @@ public class ShopHttpClient{
 			httpget.setHeader("X-AuthorityKey", xauth);
 		}
 		
+		/*RequestConfig requestConfig = RequestConfig.custom()
+				  .setSocketTimeout(3*1000)
+				  .setConnectTimeout(3*1000)
+				  .setConnectionRequestTimeout(3*1000)
+				  .build();
+
+		httpget.setConfig(requestConfig);*/
+		
 		HttpResponse response = client.execute(httpget);
 		int statusCode = response.getStatusLine().getStatusCode();
 		
@@ -186,6 +220,15 @@ public class ShopHttpClient{
 		httppost.setEntity(entity);		
 		httppost.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
 				
+		
+		/*RequestConfig requestConfig = RequestConfig.custom()
+				  .setSocketTimeout(3*1000)
+				  .setConnectTimeout(3*1000)
+				  .setConnectionRequestTimeout(3*1000)
+				  .build();
+
+		httppost.setConfig(requestConfig);*/
+		
 		HttpResponse response = client.execute(httppost);
 		int statusCode = response.getStatusLine().getStatusCode();
 		
@@ -262,6 +305,14 @@ public class ShopHttpClient{
 			httpget.setHeader("X-AuthorityKey", xauth);			
 		}
 		
+		/*RequestConfig requestConfig = RequestConfig.custom()
+				  .setSocketTimeout(3*1000)
+				  .setConnectTimeout(3*1000)
+				  .setConnectionRequestTimeout(3*1000)
+				  .build();
+
+		httpget.setConfig(requestConfig);*/
+		
 		HttpResponse response = client.execute(httpget);
 		httpEntity = response.getEntity();
 		
@@ -280,6 +331,76 @@ public class ShopHttpClient{
 	
 	public String setPostApiHeader(String url,List<NameValuePair> formparams,String xauth) throws Exception{
 		return setPostApiHeader(url,formparams,xauth,false);
+	}
+	
+	public String setAsynchPostApiHeader(String url,List<NameValuePair> formparams,String xauth) throws Exception{
+		return setAsynchPostApiHeader(url,formparams,xauth,false);
+	}
+	
+	
+	
+	/**
+	 * POST용 API 
+	 * @param url
+	 * @param formparams
+	 * @return
+	 * @throws Exception
+	 */
+	public String setAsynchPostApiHeader(String url,List<NameValuePair> formparams, String xauth,boolean isNew) throws Exception{	
+		
+		/*logger.info("asynch start!!");
+		CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
+
+		httpclient.start();
+	
+		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, "UTF-8");
+		HttpPost httppost = new HttpPost(apiUrl + url);
+		
+		httppost.removeHeaders("User-Agent");
+		httppost.removeHeaders("Authorization");		
+		httppost.removeHeaders("X-AuthorityKey");
+		
+		httppost.setEntity(entity);		
+		httppost.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
+		httppost.setHeader("User-Agent",userAgent );				
+		if ( xauth != null){
+			logger.info("X-AuthorityKey:"+ xauth);
+			httppost.setHeader("X-AuthorityKey", xauth);
+		}
+		
+		Future<HttpResponse> future = httpclient.execute(httppost, null);
+		logger.info("asynch end!!");
+				
+		return null;*/
+		
+		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, "UTF-8");
+		HttpPost httppost = new HttpPost(apiUrl + url);
+		
+		httppost.removeHeaders("User-Agent");
+		httppost.removeHeaders("Authorization");		
+		httppost.removeHeaders("X-AuthorityKey");
+		
+		httppost.setEntity(entity);		
+		httppost.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
+		httppost.setHeader("User-Agent",userAgent );				
+		if ( xauth != null){
+			logger.info("X-AuthorityKey:"+ xauth);
+			httppost.setHeader("X-AuthorityKey", xauth);
+		}
+		
+		/*RequestConfig requestConfig = RequestConfig.custom()
+				  .setSocketTimeout(1*1000)
+				  .setConnectTimeout(1*1000)
+				  .setConnectionRequestTimeout(1*1000)
+				  .build();
+
+		httppost.setConfig(requestConfig);*/
+		
+		HttpResponse response =  client.execute(httppost);
+		
+		HttpEntity httpEntity = response.getEntity();
+		
+		return EntityUtils.toString(httpEntity);
 	}
 	
 	
@@ -306,6 +427,14 @@ public class ShopHttpClient{
 			httppost.setHeader("X-AuthorityKey", xauth);
 		}
 		
+		/*RequestConfig requestConfig = RequestConfig.custom()
+				  .setSocketTimeout(1*1000)
+				  .setConnectTimeout(1*1000)
+				  .setConnectionRequestTimeout(1*1000)
+				  .build();
+
+		httppost.setConfig(requestConfig);*/
+		
 		HttpResponse response =  client.execute(httppost);
 		
 		HttpEntity httpEntity = response.getEntity();
@@ -321,6 +450,7 @@ public class ShopHttpClient{
 	 * @param songInfo
 	 * @throws Exception
 	 */
+	@Async
 	public void sendPlayLog(UserVO userInfo,SongVO songInfo) throws Exception {
 
 		logger.info("is play log songUid=" + songInfo.getSongUid() + ",title=" + songInfo.getSongTitle());
