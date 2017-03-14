@@ -321,10 +321,12 @@ public class ShopDownloadManager {
 		Writer writer = null;
 		
 		try{
-			logger.info("media object to json:" + destPath);
+			
 			writer = new OutputStreamWriter(new FileOutputStream(destPath), "UTF-8");
 			gson.toJson(obj, writer);
 			writer.close();
+			File file = new File(destPath);
+			logger.info("media object to json:" + destPath +"(" + file.length() +")bytes");
 		}catch(Exception e){
 			logger.error("",e);
 		}
@@ -346,7 +348,7 @@ public class ShopDownloadManager {
 		try{			
 			reader = new InputStreamReader(new FileInputStream(jsonPath), "UTF-8");
 			media = gson.fromJson(reader, MediaInfoVO.class);
-			reader.close();
+			reader.close();			
 		}catch(Exception e){
 			throw e;
 		}
@@ -816,7 +818,8 @@ public class ShopDownloadManager {
 				File file = media.getFile();
 				file.delete();
 				queue.remove(media);
-			}catch(Exception e){				
+			}catch(Exception e){
+				logger.warn("clean Queue Exception:", e);
 				itr = queue.iterator();
 				continue;
 			}
