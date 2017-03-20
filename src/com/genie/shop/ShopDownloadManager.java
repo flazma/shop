@@ -859,7 +859,14 @@ public class ShopDownloadManager {
 					break;
 				}else{
 					logger.info("remove song gap is current seq(" + currentSeq +") queue seq(" + media.getSeq() + ")"); 
+					
+					try{
+						File file = media.getFile();
+						file.delete();
+					}catch(Exception e){}
+					
 					queue.remove(media);
+					
 					cnt++;
 				}
 			}

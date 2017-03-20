@@ -113,14 +113,16 @@ public class ShopHttpClient{
 	public void allSendPlayLog(UserVO user){
 		logger.info("!!allSendPlayLog!!");
 		int j = playLogQueue.size();
+		MediaInfoVO media = null;
 		for(int i = 0; i < j ; i++){
 			try{
-				MediaInfoVO media = playLogQueue.get(i);
+				media = playLogQueue.get(i);
 				sendPlayLog(user,media);
-				playLogQueue.remove(media);
 			}catch(Exception e){
 				logger.warn("sendPlayLog Exception:",e);
 				i =0; j = playLogQueue.size();
+			}finally{
+				try{playLogQueue.remove(media);}catch(Exception e){}
 			}
 		}
 		
