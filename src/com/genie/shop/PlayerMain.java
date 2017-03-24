@@ -14,8 +14,6 @@ public class PlayerMain {
 		}
 		
 		 ApplicationContext context = new ClassPathXmlApplicationContext("application-context.xml");
-
-		// ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) context.getBean("taskExecutor");
 		 
 		 ShopNGenieService obj = (ShopNGenieService) context.getBean("shopNGenieService");
 		 

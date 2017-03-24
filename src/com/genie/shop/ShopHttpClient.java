@@ -198,14 +198,6 @@ public class ShopHttpClient{
 			httpget.setHeader("X-AuthorityKey", xauth);
 		}
 		
-		/*RequestConfig requestConfig = RequestConfig.custom()
-				  .setSocketTimeout(3*1000)
-				  .setConnectTimeout(3*1000)
-				  .setConnectionRequestTimeout(3*1000)
-				  .build();
-
-		httpget.setConfig(requestConfig);*/
-		
 		HttpResponse response = client.execute(httpget);
 		int statusCode = response.getStatusLine().getStatusCode();
 		
@@ -221,16 +213,7 @@ public class ShopHttpClient{
 		httppost.removeHeaders("Authorization");
 		httppost.setEntity(entity);		
 		httppost.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
-				
-		
-		/*RequestConfig requestConfig = RequestConfig.custom()
-				  .setSocketTimeout(3*1000)
-				  .setConnectTimeout(3*1000)
-				  .setConnectionRequestTimeout(3*1000)
-				  .build();
-
-		httppost.setConfig(requestConfig);*/
-		
+			
 		HttpResponse response = client.execute(httppost);
 		int statusCode = response.getStatusLine().getStatusCode();
 		
@@ -302,8 +285,7 @@ public class ShopHttpClient{
 		
 		httpget.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
 		httpget.setHeader("User-Agent",userAgent );		
-		if ( xauth != null){
-			logger.info("X-AuthorityKey:"+ xauth);
+		if ( xauth != null){			
 			httpget.setHeader("X-AuthorityKey", xauth);			
 		}
 		
@@ -335,76 +317,6 @@ public class ShopHttpClient{
 		return setPostApiHeader(url,formparams,xauth,false);
 	}
 	
-	public String setAsynchPostApiHeader(String url,List<NameValuePair> formparams,String xauth) throws Exception{
-		return setAsynchPostApiHeader(url,formparams,xauth,false);
-	}
-	
-	
-	
-	/**
-	 * POST용 API 
-	 * @param url
-	 * @param formparams
-	 * @return
-	 * @throws Exception
-	 */
-	public String setAsynchPostApiHeader(String url,List<NameValuePair> formparams, String xauth,boolean isNew) throws Exception{	
-		
-		/*logger.info("asynch start!!");
-		CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
-
-		httpclient.start();
-	
-		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, "UTF-8");
-		HttpPost httppost = new HttpPost(apiUrl + url);
-		
-		httppost.removeHeaders("User-Agent");
-		httppost.removeHeaders("Authorization");		
-		httppost.removeHeaders("X-AuthorityKey");
-		
-		httppost.setEntity(entity);		
-		httppost.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
-		httppost.setHeader("User-Agent",userAgent );				
-		if ( xauth != null){
-			logger.info("X-AuthorityKey:"+ xauth);
-			httppost.setHeader("X-AuthorityKey", xauth);
-		}
-		
-		Future<HttpResponse> future = httpclient.execute(httppost, null);
-		logger.info("asynch end!!");
-				
-		return null;*/
-		
-		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, "UTF-8");
-		HttpPost httppost = new HttpPost(apiUrl + url);
-		
-		httppost.removeHeaders("User-Agent");
-		httppost.removeHeaders("Authorization");		
-		httppost.removeHeaders("X-AuthorityKey");
-		
-		httppost.setEntity(entity);		
-		httppost.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
-		httppost.setHeader("User-Agent",userAgent );				
-		if ( xauth != null){
-			logger.info("X-AuthorityKey:"+ xauth);
-			httppost.setHeader("X-AuthorityKey", xauth);
-		}
-		
-		/*RequestConfig requestConfig = RequestConfig.custom()
-				  .setSocketTimeout(1*1000)
-				  .setConnectTimeout(1*1000)
-				  .setConnectionRequestTimeout(1*1000)
-				  .build();
-
-		httppost.setConfig(requestConfig);*/
-		
-		HttpResponse response =  client.execute(httppost);
-		
-		HttpEntity httpEntity = response.getEntity();
-		
-		return EntityUtils.toString(httpEntity);
-	}
-	
 	
 	/**
 	 * POST용 API 
@@ -428,14 +340,6 @@ public class ShopHttpClient{
 			logger.info("X-AuthorityKey:"+ xauth);
 			httppost.setHeader("X-AuthorityKey", xauth);
 		}
-		
-		/*RequestConfig requestConfig = RequestConfig.custom()
-				  .setSocketTimeout(1*1000)
-				  .setConnectTimeout(1*1000)
-				  .setConnectionRequestTimeout(1*1000)
-				  .build();
-
-		httppost.setConfig(requestConfig);*/
 		
 		HttpResponse response =  client.execute(httppost);
 		
@@ -878,21 +782,7 @@ public class ShopHttpClient{
 		}else{
 			//if ("SG4035".equals(rtCode)){ //중복 로그인 이면
 			
-			throw new Exception("["+rtCode +"]" + rtMsg);
-			//강제 로그인
-			/*userVO = loginUser();
-			
-			getChannelInfo(shopId);
-			
-			songJson = setApiHeader(strCurrentSongUrl,userVO.getSessionKey());
-			
-			json = (JSONObject)par.parse(songJson);
-			jsonData = (JSONObject)json.get("data");
-			
-			rtCode = (String)jsonData.get("rtCode");
-			
-			JSONArray jsonResult = (JSONArray)((JSONObject)jsonData.get("params")).get("song");
-			arrSongInfo = parseSong(jsonResult);*/
+			throw new Exception("["+rtCode +"]" + rtMsg);			
 		}
 		
 		return arrSongInfo;
@@ -955,67 +845,6 @@ public class ShopHttpClient{
 		
 	}
 	
-	
-	
-	/**
-	 * ��Ʈ���� ���� 
-	 * @param shopId
-	 * @param shopPasswd
-	 * @throws Exception
-	 */
-	/*public void startShopGenie(String shopId,String shopPasswd) throws Exception{
-
-		client = new DefaultHttpClient();
-		
-		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
-		formparams.add(new BasicNameValuePair("shopId", shopId));
-		formparams.add(new BasicNameValuePair("shopPassword", shopPasswd));
-		//�α��� ó��
-		UserVO userInfoLogin = parseUserInfo(postApi(loginUrl,formparams));
-		
-		//���� ���� ��ȸ
-		UserVO userAccountInfo = parseAccountInfo(setApiHeader(StringUtils.replace(userInfoUrl, "#shopId#", shopId),userInfoLogin.getSessionKey()));
-		
-		//������ ä�� �缺 ���� ��ȸ
-		ChannelVO lastChannelInfo = parseChannelInfo(setApiHeader(StringUtils.replace(lastSchedulesUrl, "#shopId#", shopId)));
-
-		
-		//app���� ��ȸ
-		String reAppInfo = StringUtils.replace(appInfoUrl, "#chainUid#", "" + userInfoLogin.getChainUid());
-		reAppInfo = StringUtils.replace(reAppInfo, "#shopUid#", "" + userInfoLogin.getShopUid());
-
-		AppInfoVO appInfo = parseAppInfo(setApiHeader(reAppInfo));
-		
-		while(true){
-			//������ ����Ʈ
-			//schedulesUrl = "/v1/api/channels/#scheduleId#/schedules?shopUid=#shopUid#&chainUid=#chainUid#";
-			String reSchduleUrl = StringUtils.replace(schedulesUrl, "#scheduleId#", "" + lastChannelInfo.getChannelUid());
-			reSchduleUrl = StringUtils.replace(reSchduleUrl, "#chainUid#", "" + userInfoLogin.getChainUid());
-			reSchduleUrl = StringUtils.replace(reSchduleUrl, "#shopUid#", "" + userInfoLogin.getShopUid());
-	
-			ArrayList<ChannelVO> arrChannelList = parseChannelList(setApiHeader(reSchduleUrl));
-			
-			ChannelVO songChannel = arrChannelList.get(0);
-			
-			//����� ��ȸ
-			String strCurrentSongUrl = StringUtils.replace(currentSongUrl, "#channelUid#", "" + songChannel.getChainUid());
-			strCurrentSongUrl = StringUtils.replace(strCurrentSongUrl, "#schedulesUid#", "" + songChannel.getScheduleUid());
-			strCurrentSongUrl = StringUtils.replace(strCurrentSongUrl, "#shopUid#", "" + userInfoLogin.getShopUid());
-			ArrayList<SongVO> songInfoList = parseSongInfo(setApiHeader(strCurrentSongUrl,userInfoLogin.getSessionKey()));
-	
-			SongVO songInfo = songInfoList.get(0);
-			
-			playMusic(songInfo);
-			Thread.sleep(1000);
-		}
-		
-		
-	    loginApiCall "https://api-shop.genie.co.kr/v1/api/notices?chainUid=118&firstRecordIndex=0", "GET"
-	    //playlist ��ȸ
-	    https://api-shop.genie.co.kr/v1/api/channels/33/schedules/1?chainUid=185, GET
-	    
-		
-	}*/
 	
 	public HttpClient getClient(){
 		return client;

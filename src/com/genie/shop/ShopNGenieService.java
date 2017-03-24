@@ -923,17 +923,4 @@ public class ShopNGenieService{
 	}
 
 
-
-
-	/*public ShopNGenieAudioPlayer getPlayer() {
-		return shopNGenieAudioPlayer;
-	}
-
-
-
-
-	public void setPlayer(ShopNGenieAudioPlayer player) {
-		this.shopNGenieAudioPlayer = player;
-	}*/
-
 }
