@@ -489,8 +489,6 @@ public class ShopDownloadManager {
 				Long startTime = System.nanoTime();
 				
 				if ( !file.exists()){
-					logger.info("\t asynch before getMedia");
-					
 					if ( queue.size() >= MAX_SIZE -1 ){						
 						taskExecutor.execute(new AodDownloadTask(mediaInfo, localDownloadPath,aodFileType,queue));
 					}else{
@@ -498,9 +496,6 @@ public class ShopDownloadManager {
 						 mediaInfo.setFile(file);
 						 queue.add(mediaInfo);
 					}
-					
-					logger.info("\t asynch after getMedia");
-					
 				}
 				
 		        Long endTime = System.nanoTime();
