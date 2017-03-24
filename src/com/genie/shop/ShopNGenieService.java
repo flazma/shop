@@ -1,23 +1,18 @@
 package com.genie.shop;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FilenameFilter;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import com.genie.shop.vo.AppInfoVO;
@@ -26,18 +21,16 @@ import com.genie.shop.vo.MediaInfoVO;
 import com.genie.shop.vo.SongVO;
 import com.genie.shop.vo.UserVO;
 
-import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jlgui.basicplayer.BasicController;
 import javazoom.jlgui.basicplayer.BasicPlayer;
 
-@EnableAsync
 @Service
-public class ShopNGenieService {
-	
+public class ShopNGenieService{
+
 	static Logger logger = LoggerFactory.getLogger(ShopNGenieService.class);
 	
 	@Autowired
-	public ShopAudioPlayerListener apl;
+	public ShopAudioPlayerListener shopAudioPlayerListerner;
 	
 	@Autowired
 	private ShopHttpClient shopHttpClient;
@@ -134,29 +127,8 @@ public class ShopNGenieService {
 	/**
 	 * 
 	 */
-	public ShopNGenieAudioPlayer player = null;
-	
-	
-	public static void main(String[] args) throws Exception {
-		
-		if (args.length <2){
-			System.out.println("required shopId , shopPassword!!");
-			System.exit(0);
-		}
-		
-		ShopNGenieService c = new ShopNGenieService();
-		
-		try{
-			c.shopId = args[0];
-			c.shopPasswd = args[1];
-			
-			c.run();
-			logger.info("is service expired");
-		}catch(Exception e){
-			logger.warn("main Exception",e);
-		}
-	}
-	
+	/*@Resource
+	public ShopNGenieAudioPlayer shopNGenieAudioPlayer;*/
 	
 	
 	
@@ -455,9 +427,9 @@ public class ShopNGenieService {
 		media = shopDownloadManager.emeAodPool.get(eIdx);
 		
 		control.open(media.getFile());
-		apl.setMedia(media);
+		shopAudioPlayerListerner.setMedia(media);
 	
-		player.addBasicPlayerListener(apl);
+		player.addBasicPlayerListener(shopAudioPlayerListerner);
 	
 		control.play();
 		
@@ -547,8 +519,8 @@ public class ShopNGenieService {
 				player = new BasicPlayer();
 				control = (BasicController)player;
 				control.open(media.getFile());
-				apl.setMedia(media);
-				apl.setFirst();
+				shopAudioPlayerListerner.setMedia(media);
+				shopAudioPlayerListerner.setFirst();
 
 			}else{
 				response = shopHttpClient.getCDNMedia(songVO);
@@ -563,7 +535,7 @@ public class ShopNGenieService {
 				control.open(httpEntity.getContent());				
 			}
 			
-			player.addBasicPlayerListener(apl);
+			player.addBasicPlayerListener(shopAudioPlayerListerner);
 			
 			control.play();
 			
@@ -646,14 +618,14 @@ public class ShopNGenieService {
 
 
 	public ShopAudioPlayerListener getApl() {
-		return apl;
+		return shopAudioPlayerListerner;
 	}
 
 
 
 
 	public void setApl(ShopAudioPlayerListener apl) {
-		this.apl = apl;
+		this.shopAudioPlayerListerner = apl;
 	}
 
 
@@ -953,17 +925,15 @@ public class ShopNGenieService {
 
 
 
-	public ShopNGenieAudioPlayer getPlayer() {
-		return player;
+	/*public ShopNGenieAudioPlayer getPlayer() {
+		return shopNGenieAudioPlayer;
 	}
 
 
 
 
 	public void setPlayer(ShopNGenieAudioPlayer player) {
-		this.player = player;
-	}
+		this.shopNGenieAudioPlayer = player;
+	}*/
 
-	
-	
 }

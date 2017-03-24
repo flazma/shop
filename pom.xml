@@ -103,13 +103,7 @@
 	     <artifactId>spring-test</artifactId>
 	     <version>${org.springframework-version}</version>
 	     <scope>test</scope>
-	    </dependency>
-	    <dependency>
-	      <groupId>junit</groupId>
-	      <artifactId>junit</artifactId>
-	      <version>4.11</version>
-	      <scope>test</scope>
-	    </dependency>		
+	    </dependency>	   	
 		<!-- AspectJ -->
 		<dependency>
 			<groupId>org.aspectj</groupId>
@@ -207,7 +201,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.7</version>
+			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
 		<!-- <dependency>

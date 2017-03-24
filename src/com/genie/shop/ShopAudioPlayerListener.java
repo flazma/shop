@@ -1,16 +1,13 @@
 package com.genie.shop;
 
-import java.util.Iterator;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.genie.shop.vo.MediaInfoVO;
-import com.genie.shop.vo.UserVO;
 
 import javazoom.jlgui.basicplayer.BasicController;
 import javazoom.jlgui.basicplayer.BasicPlayerEvent;
@@ -22,7 +19,7 @@ public class ShopAudioPlayerListener implements BasicPlayerListener{
 	static Logger logger = LoggerFactory.getLogger(ShopAudioPlayerListener.class);
 	
 	@Autowired
-	public ShopNGenieService sgc;
+	public ShopNGenieService shopNGenieService;
 	
 	@Autowired
 	private ShopHttpClient shopHttpClient;
@@ -94,8 +91,8 @@ public class ShopAudioPlayerListener implements BasicPlayerListener{
 	    	
 			if (event.getCode()==BasicPlayerEvent.STOPPED )
 			{
-				synchronized (sgc) {					
-					sgc.notifyAll();
+				synchronized (shopNGenieService) {					
+					shopNGenieService.notifyAll();
 				}			
 			}
 	    }

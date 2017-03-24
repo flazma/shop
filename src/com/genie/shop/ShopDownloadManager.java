@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
@@ -24,6 +25,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import com.genie.shop.vo.ChannelVO;
@@ -42,6 +48,9 @@ import com.google.gson.GsonBuilder;
 @Component
 public class ShopDownloadManager {
 	static Logger logger = LoggerFactory.getLogger(ShopDownloadManager.class);
+	
+	@Autowired
+	private ThreadPoolTaskExecutor taskExecutor;
 	
 	@Value("#{config['download.url']}")
 	public String downloadUrl = "";
@@ -522,122 +531,64 @@ public class ShopDownloadManager {
 	
 	
 	
-	//곡 저장
-	public synchronized void addMedia(UserVO user, ChannelVO channelInfo,Long seq, ArrayList<SongVO> arrSongVO) throws Exception {
+	public File getMedia(Long songUid, String cdnPath){
+		File file = new File(localDownloadPath + songUid +"." + aodFileType);
+		InputStream instream = shopHttpClient.getCDNMedia(cdnPath);
+		FileOutputStream output = null;
 		
-		ArrayList<MediaInfoVO> arrMedia = new ArrayList<MediaInfoVO>();
+		//file.getPath());
 		
-		String ldownloadUrl = StringUtils.replace(downloadUrl, "#channelUid#", "" + channelInfo.getChannelUid());
-		ldownloadUrl = StringUtils.replace(ldownloadUrl, "#schedulesUid#", "" + channelInfo.getScheduleUid());
-		ldownloadUrl = StringUtils.replace(ldownloadUrl, "#shopUid#", "" + user.getShopUid());
+		logger.info("\t mp3 disk write="+ file.getPath());
+
+        try {
+        	output = new FileOutputStream(file);
+            int l;
+            byte[] tmp = new byte[2048];
+            while ( (l = instream.read(tmp)) != -1 ) {
+                output.write(tmp, 0, l);
+            }
+        }catch(Exception e){
+        	logger.warn("",e);
+        }finally {
+        	try{output.close();}catch(Exception e){}
+        	try{instream.close();}catch(Exception e){}	            
+        }
 		
-		String songList = "";
-		
-		
-		int gap = MAX_SIZE - queue.size();
-		
-		logger.info("\tdownload gap is MAX_SIZE("+MAX_SIZE+")-queue.size("+queue.size()+") = "+gap);
-		
-		//queue에서 마지막 seq를 참고하여 seq 에서 gap까지를 다운받아야 함
-		//만약 마지막 큐의 값이 0이 아니면 마지막 seq의 값을 참고하여 다운로드 리스트 작성
-		if ( getQueueLastSeq() != 0L){
-			seq = getQueueLastSeq()+1;
-		}
-		
-		//queue 다운로드 문자열 생성
-		for ( Long i=seq, j = i+gap; i<j; i++){
-			songList += i + ",";
-		}
-	
-		songList = songList.substring(0, songList.length()-1);
-		
-		ldownloadUrl = StringUtils.replace(ldownloadUrl, "#songList#", songList);
-		
-		logger.info("is download start!!!"+ ldownloadUrl);
-						
-			String songJson = shopHttpClient.setApiHeader(ldownloadUrl,user.getSessionKey());
-						
-			JSONParser par = new JSONParser();
-			
-			JSONObject json = (JSONObject)par.parse(songJson);
-			JSONObject jsonData = (JSONObject)json.get("data");
-			String rtCode = (String)jsonData.get("rtCode");
-			
-			if ("0".equals(rtCode)){
-			
-				JSONArray jsonResult = (JSONArray)((JSONObject)jsonData.get("params")).get("dnList");
-				
-				for(int i=0,j=jsonResult.size(); i < j ; i++){
-					JSONObject songObject = (JSONObject)jsonResult.get(i);
-					MediaInfoVO mediaInfo = new MediaInfoVO();
-					
-					
-					Long mediaSeq = (Long)songObject.get("seq");
-					
-					Iterator itr = arrSongVO.iterator();
-					while(itr.hasNext()){
-						SongVO songVO = (SongVO)itr.next();						
-						if ( mediaSeq.equals(songVO.getSeq())){
-							
-							mediaInfo.setStartRunTime(songVO.getStartRunTime());
-							mediaInfo.setEndRunTime(songVO.getEndRunTime());
-							mediaInfo.setStartTime(songVO.getStartTime());
-							mediaInfo.setEndTime(songVO.getEndTime());
-							mediaInfo.setSongTitle(songVO.getSongTitle());
-							mediaInfo.setArtistName(songVO.getArtistName());
-							mediaInfo.setSongType(songVO.getSongType());
-							arrSongVO.remove(songVO);
-							break;
-						}						
-					}
-					
-					mediaInfo.setSeq(mediaSeq);
-					mediaInfo.setSongUid((Long)songObject.get("songUid"));
-					mediaInfo.setCdnPath(StringUtils.trimToEmpty((String)songObject.get("filePath")));
-					
-					logger.info("\tdownload info=mediaInfo.getSeq()"+ mediaInfo.getSeq() +",startTime()"+ mediaInfo.getStartTime() +",endTime()"+mediaInfo.getEndTime()+",getSongUid()"+ mediaInfo.getSongUid()+",getFilePath()"+ mediaInfo.getFilePath());
-										
-					File file = new File(localDownloadPath + mediaInfo.getSongUid() +"." + aodFileType);
-					InputStream instream = shopHttpClient.getCDNMedia(mediaInfo.getCdnPath());
-					FileOutputStream output = new FileOutputStream(file);
-					
-					mediaInfo.setFilePath(file.getPath());
-					
-					logger.info("\t mp3 disk write="+ file.getPath());
-		
-			        try {
-			            int l;
-			            byte[] tmp = new byte[2048];
-			            while ( (l = instream.read(tmp)) != -1 ) {
-			                output.write(tmp, 0, l);
-			            }
-			        } finally {
-			        	try{output.close();}catch(Exception e){}
-			        	try{instream.close();}catch(Exception e){}	            
-			        }
-					
-			        mediaInfo.setFile(file);
-					
-					arrMedia.add(mediaInfo);
-					queue.add(mediaInfo);
-					
-					
-					 //ArrayList<SongVO> songVO
-					
-					
-				}
-				
-				logger.info("\tis downloaded end!!!");
-			}
-			
-		
-		//return arrMedia;
+        logger.info("\t mp3 write ... asynch getMedia");
+        
+        return file;
 	}
 	
+	@Async
+	public Future<File> getAsyncMedia(Long songUid, String cdnPath){
+		File file = new File(localDownloadPath + songUid +"." + aodFileType);
+		InputStream instream = shopHttpClient.getCDNMedia(cdnPath);
+		FileOutputStream output = null;
+		
+		//file.getPath());
+		
+		logger.info("\t mp3 async disk write="+ file.getPath());
+
+        try {
+        	output = new FileOutputStream(file);
+            int l;
+            byte[] tmp = new byte[2048];
+            while ( (l = instream.read(tmp)) != -1 ) {
+                output.write(tmp, 0, l);
+            }
+        }catch(Exception e){
+        	logger.warn("",e);
+        }finally {
+        	try{output.close();}catch(Exception e){}
+        	try{instream.close();}catch(Exception e){}	            
+        }
+		
+        logger.info("\t mp3 write ... asynch getMedia");
+        
+        return new AsyncResult<>(file);
+       
+	}
 	
-	/*public void addQueueMedia(UserVO user, ChannelVO channelInfo, SongVO songVO) throws Exception {
-		addQueueMedia(user,channelInfo,seq,null);
-	}*/
 	
 	//@Async
 	public void addQueueMedia(UserVO userVO, ChannelVO channelInfo, Long seq) throws Exception {
@@ -700,25 +651,24 @@ public class ShopDownloadManager {
 									
 				File file = new File(localDownloadPath + mediaInfo.getSongUid() +"." + aodFileType);
 				
+				
+				
 				Long startTime = System.nanoTime();
 				
-				InputStream instream = shopHttpClient.getCDNMedia(mediaInfo.getCdnPath());
-				FileOutputStream output = new FileOutputStream(file);
-				
-				mediaInfo.setFilePath(file.getPath());
-				
-				logger.info("\t mp3 disk write="+ file.getPath());
-				
-		        try {
-		            int l;
-		            byte[] tmp = new byte[2048];
-		            while ( (l = instream.read(tmp)) != -1 ) {
-		                output.write(tmp, 0, l);
-		            }
-		        } finally {
-		        	try{output.close();}catch(Exception e){}
-		        	try{instream.close();}catch(Exception e){}	            
-		        }
+				if ( !file.exists()){
+					logger.info("\t asynch before getMedia");
+					
+					if ( queue.size() >= MAX_SIZE -1 ){						
+						taskExecutor.execute(new AodDownloadTask(mediaInfo, localDownloadPath,aodFileType,queue));
+					}else{
+						file = getMedia(mediaInfo.getSongUid(),mediaInfo.getCdnPath());
+						 mediaInfo.setFile(file);
+						 queue.add(mediaInfo);
+					}
+					
+					logger.info("\t asynch after getMedia");
+					
+				}
 				
 		        Long endTime = System.nanoTime();
 		        
@@ -728,10 +678,8 @@ public class ShopDownloadManager {
 		        
 		        logger.info("download time is " + totalTime +" sec, bandwidth is " + (fileSize/1024/1024)/totalTime +"Mbytes/sec");
 		        
-		        mediaInfo.setFile(file);
-				
 				arrMedia.add(mediaInfo);
-				queue.add(mediaInfo);
+				
 			}
 			
 			logger.info("\tis downloaded end!!!");
