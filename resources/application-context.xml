@@ -29,11 +29,6 @@
    
   	<context:annotation-config/>
    
-   
-	<aop:config  proxy-target-class="true">
-	</aop:config>
-  
-   
  	<context:component-scan  base-package="com.genie.shop">
  		<!-- <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/> -->
  	</context:component-scan> 
@@ -53,7 +48,7 @@
 	<bean id="taskExecutor"
 		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
 		<property name="corePoolSize" value="1" />
-		<property name="maxPoolSize" value="2" />
+		<property name="maxPoolSize" value="4" />
 		<property name="WaitForTasksToCompleteOnShutdown" value="true" />
 	</bean>
 	

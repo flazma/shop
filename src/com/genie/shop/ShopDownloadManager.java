@@ -484,10 +484,6 @@ public class ShopDownloadManager {
 									
 				File file = new File(localDownloadPath + mediaInfo.getSongUid() +"." + aodFileType);
 				
-				
-				
-				Long startTime = System.nanoTime();
-				
 				if ( !file.exists()){
 					if ( queue.size() >= MAX_SIZE -1 ){						
 						taskExecutor.execute(new AodDownloadTask(mediaInfo, localDownloadPath,aodFileType,queue));
@@ -496,19 +492,8 @@ public class ShopDownloadManager {
 						 mediaInfo.setFile(file);
 						 queue.add(mediaInfo);
 					}
-				}
-				
-		        Long endTime = System.nanoTime();
-		        
-		        Float totalTime = Float.valueOf(TimeUnit.NANOSECONDS.toSeconds(endTime - startTime));
-		        
-		        Long fileSize = file.length(); //byte로 반환
-		        
-		        logger.info("download time is " + totalTime +" sec, bandwidth is " + (fileSize/1024/1024)/totalTime +"Mbytes/sec");
-				
+				}				
 			}
-			
-			logger.info("\tis downloaded end!!!");
 		}
 		
 	}

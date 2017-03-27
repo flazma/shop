@@ -1,13 +1,17 @@
 package com.genie.shop;
 
+import java.util.Iterator;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import com.genie.shop.vo.MediaInfoVO;
+import com.genie.shop.vo.UserVO;
 
 import javazoom.jlgui.basicplayer.BasicController;
 import javazoom.jlgui.basicplayer.BasicPlayerEvent;
@@ -22,15 +26,70 @@ public class ShopAudioPlayerListener implements BasicPlayerListener{
 	public ShopNGenieService shopNGenieService;
 	
 	@Autowired
+	private ThreadPoolTaskExecutor taskExecutor;
+	
+	@Autowired
 	private ShopHttpClient shopHttpClient;
 	
+	@Value("#{config['play.log.url']}")
+	public String playLogUrl = "";
+	
+	@Value("#{config['user.agent']}")
+	private String userAgent = "";
+	
+	@Value("#{config['basic.id']}")
+	private String basicId = "";
+	
+	@Value("#{config['basic.passwd']}")
+	private String basicPass = "";
+	
+	
+	@Value("#{config['api.url']}")
+	public String apiUrl = "";
+	
 	private MediaInfoVO media;
+	
+	private UserVO user;
 	
 	public boolean IS_PLAY = false;
 	public boolean IS_DOWNPLAY = true;
 	
 	public boolean IS_SEND_LOG = false;
 	
+	
+	
+	public String getPlayLogUrl() {
+		return playLogUrl;
+	}
+
+	public void setPlayLogUrl(String playLogUrl) {
+		this.playLogUrl = playLogUrl;
+	}
+
+	public String getBasicId() {
+		return basicId;
+	}
+
+	public void setBasicId(String basicId) {
+		this.basicId = basicId;
+	}
+
+	public String getBasicPass() {
+		return basicPass;
+	}
+
+	public void setBasicPass(String basicPass) {
+		this.basicPass = basicPass;
+	}
+
+	public String getApiUrl() {
+		return apiUrl;
+	}
+
+	public void setApiUrl(String apiUrl) {
+		this.apiUrl = apiUrl;
+	}
+
 	public void setFirst(){
 		IS_SEND_LOG = false;
 	}
@@ -41,6 +100,14 @@ public class ShopAudioPlayerListener implements BasicPlayerListener{
 
 	public void setMedia(MediaInfoVO media) {
 		this.media = media;
+	}
+	
+	public UserVO getUser() {
+		return user;
+	}
+
+	public void setUser(UserVO user) {
+		this.user = user;
 	}
 
 	public void opened(Object stream, Map properties){
@@ -66,19 +133,21 @@ public class ShopAudioPlayerListener implements BasicPlayerListener{
 	    	
 	    	position = position/1000/1000;
 	    	
-			/*if ( position > 60 ){
+			if ( position > 60 ){
 				if ( IS_SEND_LOG == false){
 					IS_SEND_LOG = true;
 					logger.info("#####is play log time:" + position + ":(Long)properties.get(\"mp3.position.microseconds\"):" + (Long)properties.get("mp3.position.microseconds")+":");
 			
-			Iterator itr = properties.keySet().iterator();
-			while(itr.hasNext()){
-				String key = (String)itr.next();
-				logger.info("progress:is:key="+key+",value="+properties.get(key));
-			    	}
+					taskExecutor.execute(new PlayLogTask(media, user,apiUrl, playLogUrl, userAgent, basicId, basicPass));
 					
+					Iterator itr = properties.keySet().iterator();
+					while(itr.hasNext()){
+						String key = (String)itr.next();
+						logger.info("progress:is:key="+key+",value="+properties.get(key));
+					}
+						
 				}
-			}	    	*/
+			}
 	    }
 
 	    /**

@@ -95,6 +95,8 @@ public class ShopNGenieService{
 	@Value("#{config['download.url']}")
 	public String downloadUrl = "";
 	
+	@Value("#{config['play.log.url']}")
+	public String playLogUrl = "";
 	
 	@Value("#{config['local.download.path']}")
 	public String localDownloadPath = "";
@@ -104,7 +106,6 @@ public class ShopNGenieService{
 	
 	@Value("#{config['emergency.download.path']}")
 	public String emergencyDownloadPath = "";
-	
 	
 	@Value("#{config['emergency.download.count']}")
 	public Integer emergencyDownloadCount = 0;
@@ -519,7 +520,12 @@ public class ShopNGenieService{
 				player = new BasicPlayer();
 				control = (BasicController)player;
 				control.open(media.getFile());
+				shopAudioPlayerListerner.setApiUrl(apiUrl);
+				shopAudioPlayerListerner.setBasicId(basicId);
+				shopAudioPlayerListerner.setBasicPass(basicPasswd);
+				shopAudioPlayerListerner.setPlayLogUrl(playLogUrl);
 				shopAudioPlayerListerner.setMedia(media);
+				shopAudioPlayerListerner.setUser(userAccountInfo);
 				shopAudioPlayerListerner.setFirst();
 
 			}else{
