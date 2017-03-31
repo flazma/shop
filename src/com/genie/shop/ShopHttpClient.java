@@ -336,8 +336,7 @@ public class ShopHttpClient{
 		httppost.setEntity(entity);		
 		httppost.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
 		httppost.setHeader("User-Agent",userAgent );				
-		if ( xauth != null){
-			logger.info("X-AuthorityKey:"+ xauth);
+		if ( xauth != null){			
 			httppost.setHeader("X-AuthorityKey", xauth);
 		}
 		

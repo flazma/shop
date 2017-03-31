@@ -61,26 +61,18 @@ public class PlayLogTask implements Runnable{
 	
 	@Override
 	public void run(){
-		logger.info("!!allSendPlayLog!!");
-		//int j = playLogQueue.size();
-		//MediaInfoVO media = null;
-		//for(int i = 0; i < j ; i++){
-			try{
-				//media = playLogQueue.get(i);
-				sendPlayLog(user,mediaInfo);
-			}catch(Exception e){
-				logger.warn("sendPlayLog Exception:",e);
-				//i =0; j = playLogQueue.size();
-			}finally{
-				//try{playLogQueue.remove(media);}catch(Exception e){}
-			}
-		//}
+		logger.info("!!asynch PlayLog!!");
+		try{
+			sendPlayLog(user,mediaInfo);
+		}catch(Exception e){
+			logger.warn("sendPlayLog Exception:",e);
+		}
 	}
 	
 	
 	public void sendPlayLog(UserVO user,MediaInfoVO mediaInfo) throws Exception {
 
-		logger.info("is play log songUid=" + mediaInfo.getSongUid() + ",title=" + mediaInfo.getSongTitle());
+		logger.info("####### asynch play log songUid=" + mediaInfo.getSongUid() + ",title=" + mediaInfo.getSongTitle());
 		
 		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
 		
@@ -97,7 +89,7 @@ public class PlayLogTask implements Runnable{
 		
 		String songJson = setPostApiHeader(playLogUrl,formparams,user.getSessionKey());
 		
-		logger.info("is play log result =" + songJson);			
+		logger.info("####### asynch play log result =" + songJson);
 		
 	}
 	
@@ -119,8 +111,7 @@ public class PlayLogTask implements Runnable{
 		httppost.setEntity(entity);		
 		httppost.setHeader("Authorization", "Basic " + Base64.encodeBase64String((basicId +":" + basicPass).getBytes()));
 		httppost.setHeader("User-Agent",userAgent );				
-		if ( xauth != null){
-			logger.info("X-AuthorityKey:"+ xauth);
+		if ( xauth != null){			
 			httppost.setHeader("X-AuthorityKey", xauth);
 		}
 		

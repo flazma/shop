@@ -442,7 +442,7 @@ public class ShopDownloadManager {
 		
 		//queue에서 마지막 seq를 참고하여 seq 에서 gap까지를 다운받아야 함
 		//만약 마지막 큐의 값이 0이 아니면 마지막 seq의 값을 참고하여 다운로드 리스트 작성
-		if ( getQueueLastSeq() != 0L){
+		if ( getQueueLastSeq() != 0L && getQueueLastSeq() - seq < MAX_SIZE -1 ){
 			seq = getQueueLastSeq()+1;
 		}
 		
@@ -527,8 +527,8 @@ public class ShopDownloadManager {
 		Long seq = 0L;
 		Iterator itr = queue.iterator();
 		while(itr.hasNext()){
-			if(media != null){
-				media = (MediaInfoVO)itr.next();
+			media = (MediaInfoVO)itr.next();
+			if(media != null){				
 				break;
 			}
 		}
@@ -589,6 +589,8 @@ public class ShopDownloadManager {
 	public Long removeQueueGap(Long currentSeq){
 		
 		Long last = getQueueLastSeq();
+		Long first = getQueueFirstSeq();
+		
 		Long gap = last - currentSeq;
 		Long cnt = 0L;
 		if ( gap > MAX_SIZE){

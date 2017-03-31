@@ -125,13 +125,6 @@ public class ShopNGenieService{
 	@Value("#{config['remove.song.gap']}")
 	public String removeSongGap = "";
 	
-	/**
-	 * 
-	 */
-	/*@Resource
-	public ShopNGenieAudioPlayer shopNGenieAudioPlayer;*/
-	
-	
 	
 	/**
 	 * 
@@ -345,19 +338,18 @@ public class ShopNGenieService{
 				
 					songChannel = arrChannelList.get(0);
 					songInfoList = shopHttpClient.getCurrentSong(userAccountInfo, songChannel);
-				
+
 					//증복 로그인 시 size = 0  리턴
 					if (  songInfoList != null && songInfoList.size() != 0 ){
 						songInfo = songInfoList.get(0);
 						
 						Long removeGap = 0L; 
-						
+												
 						if( "true".equals(removeSongGap)){
 							removeGap = shopDownloadManager.removeQueueGap(songInfo.getSeq());
 						}
 						
 						shopDownloadManager.addQueueMedia(userAccountInfo, songChannel,songInfo.getSeq());
-						//shopDownloadManager.addQueueMedia(userAccountInfo, songChannel,songInfo);
 						
 						playMusicFromBasicPlayer(songInfo);
 						
@@ -376,11 +368,6 @@ public class ShopNGenieService{
 						
 						continue;
 					}
-					
-					
-					if ( "true".equals(sendPlayLog)){
-						shopHttpClient.allSendPlayLog(userAccountInfo);
-					}					
 				}
 			}catch(Exception e){				
 				logger.error("Exception is:",e);
@@ -394,12 +381,12 @@ public class ShopNGenieService{
 						eIdx = 0;
 					}
 					
-					logger.info("[Exception]force duplicate login start~!!");
+					logger.info("[Exception]force duplicate login start");
 					
 					//강제 로그인 후 sessionkey 업데이트
 					userAccountInfo.setSessionKey(shopHttpClient.forceLogin());					
 					Thread.sleep(1*1000);				
-					logger.info("[Exception]force duplicate login end~!!");
+					logger.info("[Exception]force duplicate login end");
 					
 					continue;
 				}catch(Exception ee){
@@ -418,8 +405,7 @@ public class ShopNGenieService{
 		logger.info("emergency AOD Play logic start~!!!");
 		BasicPlayer player = null;
 		BasicController control = null;
-	
-		//Player player = null;
+
 		MediaInfoVO media = null;
 		
 		player = new BasicPlayer();
@@ -471,8 +457,8 @@ public class ShopNGenieService{
 			if ( shopDownloadManager.queue.size() > 0 ){
 				
 				media = shopDownloadManager.poll();
+				
 				logger.info("is queue poll seq(" + media.getSeq()+")");
-				//InputStream stream = new FileInputStream(media.getFile());
 				logger.info("seq gap is " + songVO.getSeq() + " - " + songVO.getSeq() + " = " +  (songVO.getSeq() - songVO.getSeq()) );
 				logger.info("seq gap time is " + shopDownloadManager.getQueueRunningTimeGap(songVO.getSeq()) );
 				
@@ -519,14 +505,7 @@ public class ShopNGenieService{
 				
 				player = new BasicPlayer();
 				control = (BasicController)player;
-				control.open(media.getFile());
-				shopAudioPlayerListerner.setApiUrl(apiUrl);
-				shopAudioPlayerListerner.setBasicId(basicId);
-				shopAudioPlayerListerner.setBasicPass(basicPasswd);
-				shopAudioPlayerListerner.setPlayLogUrl(playLogUrl);
-				shopAudioPlayerListerner.setMedia(media);
-				shopAudioPlayerListerner.setUser(userAccountInfo);
-				shopAudioPlayerListerner.setFirst();
+				control.open(media.getFile());								
 
 			}else{
 				response = shopHttpClient.getCDNMedia(songVO);
@@ -538,8 +517,17 @@ public class ShopNGenieService{
 				
 				player = new BasicPlayer();
 				control = (BasicController)player;
-				control.open(httpEntity.getContent());				
+				control.open(httpEntity.getContent());
+				
 			}
+			
+			shopAudioPlayerListerner.setApiUrl(apiUrl);
+			shopAudioPlayerListerner.setBasicId(basicId);
+			shopAudioPlayerListerner.setBasicPass(basicPasswd);
+			shopAudioPlayerListerner.setPlayLogUrl(playLogUrl);
+			shopAudioPlayerListerner.setMedia(media);
+			shopAudioPlayerListerner.setUser(userAccountInfo);
+			shopAudioPlayerListerner.setFirst();
 			
 			player.addBasicPlayerListener(shopAudioPlayerListerner);
 			

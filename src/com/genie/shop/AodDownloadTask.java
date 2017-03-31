@@ -34,10 +34,7 @@ public class AodDownloadTask implements Runnable{
 		
 	}
 	
-	public Queue call() throws Exception {
-		return null;
-	}
-	
+
 	@Override
 	public void run(){
 		

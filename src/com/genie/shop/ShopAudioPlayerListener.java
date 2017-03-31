@@ -136,15 +136,14 @@ public class ShopAudioPlayerListener implements BasicPlayerListener{
 			if ( position > 60 ){
 				if ( IS_SEND_LOG == false){
 					IS_SEND_LOG = true;
-					logger.info("#####is play log time:" + position + ":(Long)properties.get(\"mp3.position.microseconds\"):" + (Long)properties.get("mp3.position.microseconds")+":");
-			
+
 					taskExecutor.execute(new PlayLogTask(media, user,apiUrl, playLogUrl, userAgent, basicId, basicPass));
 					
-					Iterator itr = properties.keySet().iterator();
+					/*Iterator itr = properties.keySet().iterator();
 					while(itr.hasNext()){
 						String key = (String)itr.next();
 						logger.info("progress:is:key="+key+",value="+properties.get(key));
-					}
+					}*/
 						
 				}
 			}
