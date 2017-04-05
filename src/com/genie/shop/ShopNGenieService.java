@@ -373,13 +373,14 @@ public class ShopNGenieService{
 				logger.error("Exception is:",e);
 				
 				try{
-					playEmergencyMusic(eIdx);
 					
 					if(shopDownloadManager.emeAodPool.size() > eIdx-1){
 						eIdx++;
 					}else{
 						eIdx = 0;
 					}
+					
+					playEmergencyMusic(eIdx);
 					
 					logger.info("[Exception]force duplicate login start");
 					
