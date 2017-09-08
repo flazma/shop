@@ -135,8 +135,7 @@ public class ShopAudioPlayerListener implements BasicPlayerListener{
 	    	
 			if ( position > 60 ){
 				if ( IS_SEND_LOG == false){
-					IS_SEND_LOG = true;
-
+					IS_SEND_LOG = true;					
 					taskExecutor.execute(new PlayLogTask(media, user,apiUrl, playLogUrl, userAgent, basicId, basicPass));
 					
 					/*Iterator itr = properties.keySet().iterator();

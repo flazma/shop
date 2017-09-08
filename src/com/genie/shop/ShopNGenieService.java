@@ -332,6 +332,7 @@ public class ShopNGenieService{
 				
 				runningYmd   = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
 				
+				logger.info("###getChannelList before");
 				arrChannelList = shopHttpClient.getChannelList(userAccountInfo,lastChannelInfo);
 				
 				if(arrChannelList != null && arrChannelList.size() > 0){
@@ -353,9 +354,14 @@ public class ShopNGenieService{
 						
 						playMusicFromBasicPlayer(songInfo);
 						
+						logger.info("###playMusicFromBasicPlayer end~!!");
+						
+						
 						seq = songInfo.getSeq();
 						
 						Thread.sleep(3 * 1000);
+						
+						logger.info("###Thread Sleep 3 sec");
 					}else{//중복 로그인 과 PM 진행 2가지 케이스 발생
 						
 						logger.info("force duplicate login start~!!");
@@ -413,6 +419,21 @@ public class ShopNGenieService{
 		control = (BasicController)player;
 		
 		media = shopDownloadManager.emeAodPool.get(eIdx);
+		
+		File file = media.getFile();
+		
+		//파일이 없을 경우 무한 루프를 탈출
+		while(!file.exists()){
+			int j = shopDownloadManager.emeAodPool.size();
+			eIdx++;
+			
+			if ( j < eIdx){
+				eIdx = 0;
+			}
+			
+			media = shopDownloadManager.emeAodPool.get(eIdx);			
+			file = media.getFile();
+		}
 		
 		control.open(media.getFile());
 		shopAudioPlayerListerner.setMedia(media);
@@ -541,8 +562,6 @@ public class ShopNGenieService{
 			//EventListener에서 음악이 종료 시, thread notify를 한다.
 			wait();
 			
-			
-
        }catch (Exception e) {
 			logger.info(e.toString(), e);
        }finally{
@@ -550,8 +569,11 @@ public class ShopNGenieService{
 				File file = media.getFile();	
 				String filePath = file.getPath();
 				shopDownloadManager.addEQueue(media);
+				logger.info("##downloadmanager add equeue end");
 				file.delete();
-				shopHttpClient.addPlayLog(media);
+				logger.info("##file delete");
+				this.notifyAll();
+				//shopHttpClient.addPlayLog(media);
     	   }
        }
 	          

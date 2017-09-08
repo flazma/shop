@@ -216,6 +216,8 @@ public class ShopDownloadManager {
 		
 		copyToEmergencyQueue(media);
 		
+logger.info("###addEQueue:copyToEmergencyQueue end####");
+		
 		int gap = emeAodPool.size() - EMER_MAX_SIZE;
 		
 		if (!"CM".equals(media.getSongType())){
@@ -234,10 +236,11 @@ public class ShopDownloadManager {
 					
 					logger.info("###emergency queue gap delete seq(" + tMedia.getSeq() +") ####");
 					emeAodPool.remove(tMedia);
+					logger.info("###emergency loop i("+i+") ####");
 					
 				}				
 			}
-			
+logger.info("###emergency queue for loop end####");
 			
 						
 		}
@@ -487,10 +490,12 @@ public class ShopDownloadManager {
 				if ( !file.exists()){
 					if ( queue.size() >= MAX_SIZE -1 ){						
 						taskExecutor.execute(new AodDownloadTask(mediaInfo, localDownloadPath,aodFileType,queue));
+						logger.info("asynch queue size="+ queue.size());
 					}else{
 						file = getMedia(mediaInfo.getSongUid(),mediaInfo.getCdnPath());
-						 mediaInfo.setFile(file);
-						 queue.add(mediaInfo);
+						mediaInfo.setFile(file);
+						queue.add(mediaInfo);
+						logger.info("getMedia queue size="+ queue.size());
 					}
 				}				
 			}
@@ -593,9 +598,12 @@ public class ShopDownloadManager {
 		
 		Long gap = last - currentSeq;
 		Long cnt = 0L;
-		if ( gap > MAX_SIZE){
-			logger.info("clean song queue gap(" + gap +") ,current seq("+ currentSeq +") last seq("+ last +")" ); 
+		
+		logger.info("queue gap(" + gap +") ,current seq("+ currentSeq +") , first seq("+ first +"),last seq("+ last +")" ); 
+		
+		if ( gap > MAX_SIZE){			
 			cleanQueue();			
+			logger.info("clean song queue gap(" + gap +") ,current seq("+ currentSeq +"),first seq("+ first +"), last seq("+ last +")" ); 
 			return null;
 		}else{
 		
