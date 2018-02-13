@@ -858,6 +858,7 @@ public class ShopHttpClient{
 	 * @param songTitle
 	 */
 	public void playTTS(Player player,String artistName,String songTitle){
+		
 		String ttsStr = "http://translate.google.com/translate_tts?ie=UTF-8&total=1&idx=0&textlen=60&client=tw-ob&tl=ko-kr&q=";
 		HttpGet httpttsGet = null;
 		HttpResponse response =null;
@@ -873,6 +874,8 @@ public class ShopHttpClient{
 		}catch(Exception e){
 			logger.warn("TTS Exception ",e);
 		}
+		
+		
 	}
 	
 	

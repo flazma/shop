@@ -87,9 +87,15 @@ public class PlayLogTask implements Runnable{
 		formparams.add(new BasicNameValuePair("songLid", "" + mediaInfo.getSongLid() ));
 		formparams.add(new BasicNameValuePair("cmYn", "" + (mediaInfo.getSongType().equals("CM") ? "Y" : "N" ) ));
 		
-		String songJson = setPostApiHeader(playLogUrl,formparams,user.getSessionKey());
+		String songJson = null;
+		try{
+			songJson = setPostApiHeader(playLogUrl,formparams,user.getSessionKey());
+			logger.info("####### asynch play log result =" + songJson);
+		}catch(Exception e){
+			logger.error("::play log error::", e);
+		}
 		
-		logger.info("####### asynch play log result =" + songJson);
+		
 		
 	}
 	
@@ -114,6 +120,11 @@ public class PlayLogTask implements Runnable{
 		if ( xauth != null){			
 			httppost.setHeader("X-AuthorityKey", xauth);
 		}
+		
+		for(NameValuePair tmpparams: formparams){
+			logger.debug("PARAM="+tmpparams.getName() +":VALUES="+tmpparams.getValue());			
+		}
+		
 		
 		HttpResponse response =  client.execute(httppost);
 		
