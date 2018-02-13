@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -76,10 +77,10 @@ public class PlayLogTask implements Runnable{
 		
 		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
 		
-		formparams.add(new BasicNameValuePair("siteCode", mediaInfo.getSiteCode()));
-		formparams.add(new BasicNameValuePair("sidCode", mediaInfo.getSidCode()));
-		formparams.add(new BasicNameValuePair("chainUid", "" + mediaInfo.getChainUid()));
-		formparams.add(new BasicNameValuePair("shopUid", "" + user.getShopUid() ));
+		formparams.add(new BasicNameValuePair("siteCode", StringUtils.defaultString(mediaInfo.getSiteCode())));
+		formparams.add(new BasicNameValuePair("sidCode", StringUtils.defaultString(mediaInfo.getSidCode())));
+		formparams.add(new BasicNameValuePair("chainUid", ""+mediaInfo.getChainUid()));
+		formparams.add(new BasicNameValuePair("shopUid", ""+user.getShopUid()));
 		formparams.add(new BasicNameValuePair("channelUid", "" + mediaInfo.getChannelUid() ));
 		formparams.add(new BasicNameValuePair("albumUid", "" + mediaInfo.getAlbumUid() ));
 		formparams.add(new BasicNameValuePair("scheduleUid", "" + mediaInfo.getScheduleUid() ));
@@ -122,7 +123,7 @@ public class PlayLogTask implements Runnable{
 		}
 		
 		for(NameValuePair tmpparams: formparams){
-			logger.debug("PARAM="+tmpparams.getName() +":VALUES="+tmpparams.getValue());			
+			logger.info(""+tmpparams.getName() +"="+tmpparams.getValue());			
 		}
 		
 		

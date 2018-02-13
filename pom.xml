@@ -27,12 +27,7 @@
 					<artifactId>commons-logging</artifactId>
 				 </exclusion>
 			</exclusions>
-		</dependency>
-		<!-- <dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<version>${org.springframework-version}</version>
-		</dependency> -->
+		</dependency>		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aop</artifactId>
@@ -42,22 +37,12 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
 			<version>${org.springframework-version}</version>
-		</dependency>
-		<!-- <dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-asm</artifactId>
-			<version>${org.springframework-version}</version>
-		</dependency> -->
+		</dependency>		
  		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aspects</artifactId>
 			<version>${org.springframework-version}</version>
-		</dependency>
-		<!-- <dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-jdbc</artifactId>
-			<version>${org.springframework-version}</version>
-		</dependency> -->
+		</dependency>		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
@@ -72,32 +57,7 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-expression</artifactId>
 			<version>${org.springframework-version}</version>
-		</dependency>
-		<!-- <dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-tx</artifactId>
-			<version>${org.springframework-version}</version>
-		</dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-            <version>${org.springframework-version}</version>
-        </dependency> -->
-       <!--  <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-            <version>${org.springframework-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-            <version>${org.springframework-version}</version>
-        </dependency>	
-        <dependency>
-		    <groupId>org.springframework.security</groupId>
-		    <artifactId>spring-security-taglibs</artifactId>
-		    <version>${org.springframework-version}</version>
-		</dependency> -->	
+		</dependency>		
 	    <dependency>
 	     <groupId>org.springframework</groupId>
 	     <artifactId>spring-test</artifactId>
@@ -122,13 +82,7 @@
 			<artifactId>jcl-over-slf4j</artifactId>
 			<version>${org.slf4j-version}</version>
 			<scope>runtime</scope>
-		</dependency>
-		<!-- <dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>${org.slf4j-version}</version>
-			<scope>runtime</scope>
-		</dependency> -->
+		</dependency>		
 		<dependency>
 		    <groupId>ch.qos.logback</groupId>
 		    <artifactId>logback-core</artifactId>
@@ -152,30 +106,7 @@
 		    <version>${org.logback-version}</version>
 		</dependency>
 		
-		<!-- 
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.15</version>
-			<exclusions>
-				<exclusion>
-					<groupId>javax.mail</groupId>
-					<artifactId>mail</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.jms</groupId>
-					<artifactId>jms</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jdmk</groupId>
-					<artifactId>jmxtools</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jmx</groupId>
-					<artifactId>jmxri</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency> -->
+		
 
 		<!-- @Inject -->
 		<dependency>
@@ -183,19 +114,6 @@
 			<artifactId>javax.inject</artifactId>
 			<version>1</version>
 		</dependency>
-				
-		<!-- Servlet -->
-		<!-- <dependency>
-			<groupId>javax.servlet.jsp</groupId>
-			<artifactId>jsp-api</artifactId>
-			<version>2.1</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>jstl</artifactId>
-			<version>1.2</version>
-		</dependency> -->
 	
 		<!-- Test -->
 		<dependency>
@@ -203,12 +121,7 @@
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
 			<scope>test</scope>
-		</dependency>
-		<!-- <dependency>
-			<groupId>org.apache.tiles</groupId>
-			<artifactId>tiles-extras</artifactId>
-			<version>2.2.2</version>
-		</dependency> -->
+		</dependency>		
 		<dependency>
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjweaver</artifactId>
@@ -223,27 +136,7 @@
 			<groupId>cglib</groupId>
 			<artifactId>cglib-nodep</artifactId>
 			<version>2.2.2</version>
-		</dependency>
-		<!-- <dependency>
-			<groupId>org.mybatis</groupId>
-			<artifactId>mybatis</artifactId>
-			<version>3.2.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.mybatis</groupId>
-			<artifactId>mybatis-spring</artifactId>
-			<version>1.2.0</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-dbcp</groupId>
-			<artifactId>commons-dbcp</artifactId>
-			<version>1.4</version>
-		</dependency>
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>5.0.8</version>
-		</dependency> -->
+		</dependency>		
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
@@ -258,119 +151,67 @@
 			<groupId>net.sourceforge.jtds</groupId>
 			<artifactId>jtds</artifactId>
 			<version>1.3.1</version>
-		</dependency>
-		<!-- <dependency>
-			<groupId>com.hazelcast</groupId>
-			<artifactId>hazelcast-all</artifactId>
-			<version>3.1.7</version>
-		</dependency> -->
-		<!-- <dependency>
-			<groupId>org.codehaus.jackson</groupId>
-			<artifactId>jackson-mapper-asl</artifactId>
-			<version>1.9.13</version>
-		</dependency> -->
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.2.2</version>
-		</dependency>
+		</dependency>		
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpmime</artifactId>
 			<version>4.2.2</version>
-		</dependency>	
-		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpasyncclient -->
+		</dependency>			
 		<dependency>
 		    <groupId>org.apache.httpcomponents</groupId>
 		    <artifactId>httpasyncclient</artifactId>
 		    <version>4.1</version>
 		</dependency>
-		
-		
-		<!-- <dependency>
-		    <groupId>dwr</groupId>
-		    <artifactId>dwr</artifactId>
-		    <version>3.0.0-117b</version>
-		    <scope>system</scope>
-		    <systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/dwr.jar</systemPath>
-		</dependency>
-		<dependency>
-		    <groupId>egovframework.rte.fdl</groupId>
-		    <artifactId>cmmn</artifactId>
-		    <version>2.0.0</version>
-		    <scope>system</scope>
-		    <systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/egovframework.rte.fdl.cmmn-2.0.0.jar</systemPath>
-		</dependency>
-		<dependency>
-		    <groupId>egovframework.rte.fdl</groupId>
-		    <artifactId>property</artifactId>
-		    <version>2.0.0</version>
-		    <scope>system</scope>
-		    <systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/egovframework.rte.fdl.property-2.0.0.jar</systemPath>
-		</dependency>
-		<dependency>
-		    <groupId>log4jdbc</groupId>
-		    <artifactId>log4jdbc</artifactId>
-		    <version>4-1.2</version>
-		    <scope>system</scope>
-		    <systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/log4jdbc4-1.2.jar</systemPath>
-		</dependency>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-cypher-compiler-2.1</artifactId>
-			<version>2.1.2</version>
-		</dependency> -->
 		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
 			<version>1.7.3</version>
-		</dependency>
-		<!-- <dependency>
-			<groupId>javax.websocket</groupId>
-			<artifactId>javax.websocket-api</artifactId>
-			<version>1.0</version>
-			<scope>provided</scope>
-		</dependency> -->
-		<!-- <dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<version>3.1.0</version>
-			<scope>provided</scope>
-		</dependency> -->
-		<!-- <dependency>
-			<groupId>org.elasticsearch</groupId>
-			<artifactId>elasticsearch</artifactId>
-			<version>1.2.2</version>
-		</dependency> -->
+		</dependency>		
 		<dependency>
 		    <groupId>commons-lang</groupId>
 		    <artifactId>commons-lang</artifactId>
 		    <version>2.6</version>
-		</dependency>
-		
-		<!-- https://mvnrepository.com/artifact/javazoom/jlayer -->
+		</dependency>		
 		<dependency>
 		    <groupId>javazoom</groupId>
 		    <artifactId>jlayer</artifactId>
 		    <version>1.0.1</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.googlecode.soundlibs/basicplayer -->
+		</dependency>		
 		<dependency>
 		    <groupId>com.googlecode.soundlibs</groupId>
 		    <artifactId>basicplayer</artifactId>
 		    <version>3.0.0.0</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+		</dependency>		
 		<dependency>
 		    <groupId>org.apache.httpcomponents</groupId>
 		    <artifactId>httpclient</artifactId>
 		    <version>4.5.2</version>
 		</dependency>
-		
+		<dependency>
+		    <groupId>org.apache.httpcomponents</groupId>
+		    <artifactId>httpcore</artifactId>
+		    <version>4.4</version>
+		</dependency>
 		
 	</dependencies>
     <build>
 	   <sourceDirectory>src</sourceDirectory>
+	    <resources>
+            <resource>
+                <directory>src</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>resources</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <artifactId>maven-eclipse-plugin</artifactId>
