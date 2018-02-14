@@ -122,8 +122,10 @@ public class PlayLogTask implements Runnable{
 			httppost.setHeader("X-AuthorityKey", xauth);
 		}
 		
+		logger.info(httppost.getURI().toString());
+		
 		for(NameValuePair tmpparams: formparams){
-			logger.info(""+tmpparams.getName() +"="+tmpparams.getValue());			
+			logger.info("params:"+tmpparams.getName() +"="+tmpparams.getValue());			
 		}
 		
 		
