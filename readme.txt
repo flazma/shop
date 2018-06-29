@@ -13,3 +13,9 @@
 
 
 maven install 로 jar파일 생성 가능
+
+
+
+armbian으로 OS구성 시 Oracle JAVA가 아닌 OpenJDK로 구동 시 구동 에러 발생
+https://support.ipconfigure.com/hc/en-us/articles/213384266-Install-Oracle-JRE-on-Debian-Linux-including-ARM-architectures-
+
